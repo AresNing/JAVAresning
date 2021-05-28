@@ -3,5 +3,5 @@
 
 
 - **Java基础**
-  - [Quantum Well Design](PhysicsOfDevices/量子阱设计.md)
+  - [Detail](Java基础/Detail.md)
   
