@@ -99,7 +99,7 @@ import parser from "./parser.js";
 
             /// [Add_Tail]
             var copyRight =
-                "\n\n---\n\n> ✏️ **文章作者:** [ROrdo](mailto:luozhf3@mail2.sysu.edu.com) \n>\n" +
+                "\n\n---\n\n> ✏️ **文章作者:** [AresNing](mailto:jkning@zju.edu.cn) \n>\n" +
                 "> 📎 **文章链接:** " +
                 url2 +
                 "\n>\n" +
