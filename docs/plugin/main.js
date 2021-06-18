@@ -5,6 +5,10 @@
         repo: "https://github.com/AresNing/JAVAresning/",
         notFoundPage: true,
         loadSidebar: true,
+        autoHeader: true,
+        coverpage: true,
+        mergeNavbar: true,
+        onlyCover: false,
         loadNavbar: !isMobile, // 适配手机
         subMaxLevel: 4,
         alias: {
