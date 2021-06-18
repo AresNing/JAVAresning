@@ -1,11 +1,11 @@
 (function () {
     function install(hook, vm) {
         gitalkConfig = {
-            clientID: "9dd9311566530f40b3f1",
-            clientSecret: "6ef3586c67c69781d82a1e4fd740623af72488f8",
-            repo: "rogerrordo.github.io",
-            owner: "RogerRordo",
-            admin: ["RogerRordo"],
+            clientID: "9f704c155dec9816ab5e",
+            clientSecret: "d0fba1e76a917a5f87eb7ff2b769f38a637e4481",
+            repo: "aresning.github.io/JAVAresning",
+            owner: "AresNingo",
+            admin: ["AresNing"],
             distractionFreeMode: false,
             enableHotKey: true, // 提交评论快捷键 (cmd/ctrl + enter)
         };

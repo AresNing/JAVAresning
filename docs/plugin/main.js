@@ -1,8 +1,8 @@
 (function () {
     isMobile = document.body.clientWidth <= 600;
     param = {
-        name: "ROrdo's Blog",
-        repo: "RogerRordo/rogerrordo.github.io",
+        name: "AresNing",
+        repo: "https://github.com/AresNing/JAVAresning/",
         notFoundPage: true,
         loadSidebar: true,
         loadNavbar: !isMobile, // 适配手机
