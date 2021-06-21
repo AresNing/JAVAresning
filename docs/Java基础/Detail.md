@@ -2025,7 +2025,7 @@ for(元素类型 元素名 : 集合名或数组名) {
 
 ## 基本介绍
 
-- `List`接口是`Collection`接口的子接口
+- `List`接口是`Collection`接口的子接口，常用方法和`Collection`接口一样
 - `List`集合类中元素有序，且可以重复
 - `List`集合中的每个元素都支持索引
 - `List`接口的实现类有：`ArrayList`，`LinkedList`，`Vector`等
@@ -2089,7 +2089,7 @@ for(元素类型 元素名 : 集合名或数组名) {
 
 - 如果使用的是指定大小的构造器，则初始`elementData`容量为指定大小；如需再次扩容，则扩容`elementData`为原来的`1.5`倍
 
-# Vector 的底层结构
+# Vector 底层结构
 
 ## 基本介绍
 
@@ -2104,7 +2104,7 @@ for(元素类型 元素名 : 集合名或数组名) {
 | `ArrayList` | 可变数组 | JDK 1.2 | 不安全，效率高         | 如果是无参构造器：第一次容量为`10`，从第二次开始按照`1.5`倍扩容；如果是有参构造器，按照`1.5`倍扩容 |
 | `Vector`    | 可变数组 | JDK 1.0 | 安全，效率不高         | 如果是无参构造器：第一次容量为`10`，从第二次开始按照`2`倍扩容；如果是有参构造器，按照`2`倍扩容 |
 
-# LinkedList 的底层结构
+# LinkedList 底层结构
 
 ## 基本说明
 
@@ -2115,13 +2115,202 @@ for(元素类型 元素名 : 集合名或数组名) {
 ## LinkedList 的底层操作机制
 
 - `LinkedList`底层维护了一个**双向链表**
+
 - `LinkedList`中维护了两个属性
+  
   - **`first`：指向首节点**
   - **`last`：指向尾节点**
-- 每个节点（`Node`对象）内又维护了三个属性，最终实现**双向链表**
+  
+- 每个节点（`Node`类）内又维护了三个属性，最终实现**双向链表**
+  
+  ```java
+  class Node {
+      public Object item;
+      public Node next;
+      public Node pre;
+      public Node(Object name) {
+          this.item = name;
+      }
+      public String toString() {
+          return "Node name=" + item;
+      }
+  }
+  ```
+  
   - **`prev`：指向前一个节点**
   - **`next`：指向后一个节点**
   - **`item`：存放节点元素**
+  
+- `LinkedList`的元素的添加和删除，不是通过数组来完成的，相对来说效率较高
+
+- **`LinkedList`的`remove()`方法是默认删除第一个节点**
+
+## ArrayList 和 LinkedList 比较
+
+|            | 底层结构 | 增/删的效率    | 更改/查询的效率            |
+| ---------- | -------- | -------------- | -------------------------- |
+| ArrayList  | 可变数组 | 较低，数组扩容 | 较高，直接访问             |
+| LinkedList | 双向链表 | 较高，链表追加 | 较低，通过前后节点间接访问 |
+
+- 选择`ArrayList`：更改/查询的操作多，程序的大部分情况为查询，大部分情况会选择`ArrayList`
+- 选择`LinkedList`：增/删的操作多
+
+# Set 接口和常用方法
+
+## 基本介绍
+
+- 无序（添加和取出的顺序不一致），没有索引
+- 不允许重复元素，因此最多包含一个`null`
+- `Set`接口是`Collection`接口的子接口，常用方法和`Collection`接口一样
+- `Set`接口的实现类有：`HashSet`，`TreeSet`等
+
+## Set 接口的遍历方式
+
+- 同`Collection`的遍历方式一样
+  - 迭代器
+  - 增强`for`循环
+- **不能使用索引的方式进行访问**
+
+# HashSet 
+
+## 基本介绍
+
+- `HashSet`实现了`Set`接口
+
+- `HashSet`底层是`HashMap`，`HashMap`底层是**数组 + 链表 + 红黑树**
+
+  ```java
+  public HashSet() {
+      map = new HashMap<>();
+  }
+  ```
+
+- 可以存放`null`值，但仅能有一个`null`
+
+- 不能有重复元素/对象
+
+- `HashSet`不保证元素是有序的，取决于`hash`后才能确定索引的结果（即不保证存放元素的顺序和取出顺序）
+
+## HashSet 添加元素的底层机制
+
+- 添加一个元素时，先得到`hash`值，该`hash`值会转成索引值
+  - 得到`key`对应的`hash`值：`(h=key.hashCode()) ^ (h >>> 16)`
+  - **`hashCode()`方法可由程序员重写，按业务需求决定**
+- 找到存储数据表`table`（`HashSet`），判断该索引位置是否已经存放元素
+  - 如果没有元素，直接添加
+  - 如果有，调用`equals`比较，如果相同，就放弃添加；如果不相同，则挂载到最后
+  - **`equals`方法由程序员重写（比较的标准由程序员决定），不可以简单地看做是比较其内容**
+- 在 **java8** 中，如果一条链表的元素个数**到达`TREEIFY_THRESHOLD`（默认为8）**，**并且`table`的大小`>= MIN_TREEIFY_CAPCITY`（默认为64）**，就会进行**树化（红黑树）**，**否则仍然采用数组扩容**
+- 向`HashSet`增加一个元素，`HashSet`增加了一个`size`
+
+## HashSet 扩容和转成红黑树的底层机制
+
+- `HashSet`底层是`HashMap`，第一次添加时，`table`数组扩容到`16`，触发再次扩容的临界值为**数组大小乘以加载因子`threshold = 16 * loadFactor  = 16 * 0.75 = 12`**
+
+- 如果`table`数组使用到达临界值`threshold`，就会扩容到`16 * 2 = 32`，新的临界值就是`32 * 0.75 = 24`，以此类推
+
+- 在转成红黑树时，要进行判断，判断条件
+
+  ```java
+  if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY(64))
+      resize();
+  ```
+
+  如果上面条件成立，先 table 扩容；只有上面条件不成立时，才进行转成红黑树
+
+# LinkedHashSet
+
+## 基本介绍
+
+- `LinkedHashSet`是`HashSet`的子类
+- `LinkedHashSet`底层是一个`LinkedHashMap`，底层维护了一个**数组 + 双向链表**
+- `LinkedHashSet`根据元素的`hash`值来决定元素的存储位置，同时**使用链表维护元素的次序**
+- `LinkedHashSet`不允许添加重复元素
+
+## LinkedHashSet 底层机制
+
+- `LinkedHashSet`中维护了一个**`hash`表/数组和双向链表**（`LinkedHashSet`有`head`和`tail`）
+
+- 每一个节点`Node`有`before`和`after`属性，形成双向链表
+
+- 在添加一个元素时，先求`hash`值，再求索引，确定该元素在`table`的位置，然后将添加的元素加入到双向链表；如果已经存在，则不添加（原则与`HashSet`一样）
+
+  ```java
+  tail.next = newElement;
+  newElement.pre = tail;
+  tail = newElement;
+  ```
+
+- 遍历`LinkedHashSet`能确保插入顺序和遍历顺序一样
+
+# Map 接口和常用方法
+
+> 以下内容基于 JDK8 的 `Map`接口
+
+## 基本介绍
+
+- `Map`与`Collection`并列存在，用于**保存具有映射关系的数据：`Key - Value`**
+
+- `Map`中的`key`和`value`可以是任何引用类型的数据，**封装到`HashMap$Node`对象中**；**`key`存放在`(Set) KeySet`，`value`存放在`(Collection) Values`**
+
+- `Map`中的**`key`不允许重复**，原因和`HashSet`一样；`key`可以为`null`，只能有一个
+
+- `Map`中的**`value`可以重复**；`value`可以为`null`，可以多个
+
+- **常使用`String`类作为`Map`的`key`**
+
+- **`key`和`value`之间存在单向一对一映射关系**，即通过指定的`key`对应唯一的`value`
+
+- 一对`k-v`是放在`HashMap$Node`中的，又因为`Node`实现了`Entry`接口，也说一对`k-v`是一个`Entry`
+
+  ![key-value示意图](pics/image-20210621153230969.png)
+
+## Map接口的常用方法
+
+- `put(key, value)`：添加`k-v`；若添加相同的`key`，则替换对应的`value`
+
+- `remove(key)`：根据键（`key`）删除映射关系`k-v`
+
+- `get(key)`：根据键`key`获取值`value`
+
+- `size()`：获取元素个数
+
+- `isEmpty()`：判断元素个数是否为`0`
+
+- `clear()`：清空元素
+
+- `contaninsKey(key)`：查找键`key`是否存在
+
+- `keySet()`：获取所有的键`key`，返回`Set`类型
+
+  ```java
+  Map map = new Map();
+  Set keyset = map.keySet();
+  ```
+
+- `values()`：获取所有的值`value`，返回`Collection`类型
+
+  ```java
+  Map map = new Map();
+  Collection values = map.values();
+  ```
+
+- `entrySet()`：获取所有的`k-v`关系，返回`Set`类型
+
+  ```java
+  Map map = new Map();
+  Set entrySet = map.entrySet();
+  ```
+
+## Map接口的遍历方法
+
+- 
+
+
+
+
+
+
 
 # 泛型
 
