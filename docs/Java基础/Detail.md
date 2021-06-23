@@ -2265,6 +2265,8 @@ for(元素类型 元素名 : 集合名或数组名) {
 
   ![key-value示意图](pics/image-20210621153230969.png)
 
+- `Map`接口的常用实现类：`HashMap`，`HashTable`，`Properties`
+
 ## Map接口的常用方法
 
 - `put(key, value)`：添加`k-v`；若添加相同的`key`，则替换对应的`value`
@@ -2284,35 +2286,247 @@ for(元素类型 元素名 : 集合名或数组名) {
 - `keySet()`：获取所有的键`key`，返回`Set`类型
 
   ```java
-  Map map = new Map();
+  Map map = new HashMap();
   Set keyset = map.keySet();
   ```
 
 - `values()`：获取所有的值`value`，返回`Collection`类型
 
   ```java
-  Map map = new Map();
+  Map map = new HashMap();
   Collection values = map.values();
   ```
 
 - `entrySet()`：获取所有的`k-v`关系，返回`Set`类型
 
   ```java
-  Map map = new Map();
-  Set entrySet = map.entrySet();
+  Map map = new HashMap();
+  Set entrySet = map.entrySet(); // EntrySet<Map.Entry<K,V>>
   ```
 
 ## Map接口的遍历方法
 
-- 
+- 第一种：先取出所有`key`，再通过`key`取出对应的`value`
 
+  ```java
+  Set keyset = map.keySet();
+  // (1)增强 for 循环
+  for(Object key : ketset) {
+      System.out.println(map.get(key));
+  }
+  
+  // (2)iterator 迭代器
+  Iterator iterator = keyset.iterator();
+  while(iterator.hasNext()) {
+      Object key = iterator.next();
+      System.out.println(map.get(key));
+  }
+  ```
 
+- 第二种：先取出所有`value`，再遍历`value`
 
+  ```java
+  Collection values = map.values();
+  // (1)增强 for 循环
+  for(Object value : values) {
+      System.out.println(value);
+  }
+  
+  // (2)iterator 迭代器
+  Iterator iterator = values.iterator();
+  while(iterator.hasNext()) {
+      Object value = iterator.next();
+      System.out.println(value);
+  }
+  ```
 
+- 第三种：通过`entrySet()`方法来获取`k-v`
 
+  ```java
+  Set entrySet = map.entrySet(); // EntrySet<Map.Entry<K,V>>
+  // (1)增强 for 循环
+  for(Object entry : entrySet) {
+      Map.Entry m = (Map.Entry) entry;
+      // Map.Entry类含有 getKey() 和 getValue() 方法
+      System.out.println(m.getKey() + "-" + m.getValue());
+  }
+  
+  // (2)iterator 迭代器
+  Iterator iterator = entrySet.iterator();
+  while(iterator.hasNext()) {
+      Object entry = iterator.next();
+      Map.Entry m = (Map.Entry) entry;
+      System.out.println(m.getKey() + "-" + m.getValue());
+  }
+  ```
 
+# HashMap
 
-# 泛型
+## 基本介绍
+
+- **`HashMap`是`Map`接口使用频率最高的实现类**
+- `HashMap`是以`key-val`对的方式来存储数据（`HashMap$Node`类型）
+- `key`不能重复，`value`可以重复，允许使用`null`键和`null`值
+- 如果添加相同的`key`，则会覆盖原来的`key-val`，相当于修改（`key`不会被替换，`value`会被替换）
+- 不保证映射的顺序（与`HashSet`一样），底层是以`hash`表的方式来存储（JDK 8 的`HashMap`底层为**数组 + 链表 + 红黑树**）
+- `HashMap`没有实现同步，**线程不安全**，即方法没有做同步互斥的操作，没有`synchronized`
+
+## HashMap 的底层机制
+
+- 扩容机制和`HashSet`相同（`HashSet`底层是`HashMap`）
+- JDK 7 的`HashMap`底层实现[ 数组 + 链表 ]，JDK 8 的`HashMap`底层实现[ 数组 + 链表 + 红黑树]
+
+# HashTable
+
+## 基本介绍
+
+- `HashTable`是以`key-val`对的方式来存储数据
+- **`HashTable`的`key`和`value`都不能为`null`，否则会抛出`NullPointerException`**
+- `HashTable`使用方法基本上和`HashMap`一样
+- `HashTable`是线程安全的（`synchronized`）
+
+## HashTable 和 HashMap对比
+
+|             | 版本 | 线程安全（同步） | 效率 | 允许`null`键/`null`值 |
+| ----------- | ---- | ---------------- | ---- | --------------------- |
+| `HashMap`   | 1.2  | 不安全           | 高   | :heavy_check_mark:    |
+| `HashTable` | 1.0  | 安全             | 较低 | :x:                   |
+
+# Properties
+
+## 基本介绍
+
+- `Properties`类继承`HashTable`类并且实现了`Map`接口，以`key-val`对的方式来存储数据
+- 使用特点与`HashTable`类似
+- `Properties`可以用于从`xxx.properties`文件中，加载数据到`Properties`类对象，并进行读取和修改
+  - `xxx.properties`文件通常作为配置文件，[Java 读写Properties配置文件](https://www.cnblogs.com/xudong-bupt/p/3758136.html)
+
+# 开发中如何选择集合实现类
+
+1. 先判断存储的类型
+   - **一组对象 [单列]**
+   - **一组键值对 [双列]**
+2. 一组对象 [单列]：`Collection`接口
+   - **允许重复**：`List`
+     - **增删多**：`LinkedList` [底层维护双向链表]
+     - **改查多**：`ArrayList` [底层维护`Object`类型的可变数组]
+   - **不允许重复**：`Set`
+     - **无序**：`HashSet` [底层是`HashMap`，维护`hash`表，即 数组 + 链表 + 红黑树]
+       - `HashSet`的去重机制（`hashCode()+equals()`）：底层先通过存入对象，进行运算得到一个**`hash`值**，通过`hash`值得到**对应的索引**，如果`table`索引所在位置**没有数据，则直接添加**；如果**有数据，则进行`equals`比较（遍历比较）**，比较不相同就添加，否则不添加
+     - **排序**：`TreeSet`，底层是`TreeMap`，使用`TreeSet`提供的一个构造器，其可以传入一个比较器（匿名内部类）并指定排序规则；当使用无参构造器创建`TreeSet`时，仍然是无序的
+       - `TreeSet`的去重机制：如果创建对象时**传入`Comparator`匿名对象，则使用实现的`compare`去重**，如果方法返回`0`，就认为是相同的元素，不添加；如果创建对象时**没有传入`Comparator`匿名对象，则以添加的对象实现的`Comapreable`接口的`compareTo`去重**
+     - **插入和取出顺序一致**：`LinkedHashSet`，维护 数组 + 双向链表
+3. 一组键值对 [双列]
+   - **键无序**：`HashMap` [底层是`hash`表，JDK7：数组 + 链表，JDK8：数组 + 链表 + 红黑树]
+   - **键排序**：`TreeMap`，使用`TreeMap`提供的一个构造器，其可以传入一个比较器（匿名内部类）并指定排序规则；当使用无参构造器创建`TreeMap`时，仍然是无序的
+   - **键插入和取出顺序一致**：`LinkedHashMap`
+   - **读取文件**：`Properties`
+
+# Collections 工具类
+
+## 基本介绍
+
+- `Collections`是一个操作`Set`、`List`和`Map`等集合的工具类
+- `Collections`中提供了一系列**静态`static`的方法**对集合元素进行**排序**、**查询**和**修改**等操作
+
+## 排序操作
+
+- `reverse(List)`：反转`List`集合元素的顺序
+- `shuffle(List)`：对`List`集合元素进行随机排序
+- `sort(List)`：根据元素的自然顺序对指定`List`集合元素按升序排序
+- `sort(List, Comparator)`：根据指定的`Comparator`产生的顺序对`List`集合元素进行排序
+- `swap(List, int i, int j)`：将`List`集合中的`i`处元素和`j`处元素进行交换
+
+## 查找、替换
+
+- `Object max(Collection)`：根据元素的自然顺序，返回给定集合中的最大元素
+- `Object max(Collection, Comparator)`：根据`Comparator`指定的顺序，返回给定集合中的最大元素
+- `Object min(Collection)`
+- `Object min(Collection, Comparator)`
+- `int frequency(Collection, Object)`：返回指定集合中指定元素的出现次数
+- `void copy(List dest, List src)`：将`src`中的内容复制到`dest`中
+- `boolean replaceAll(List list, Object oldVal, Object newVal)`：使用新值替换`List`对象的所有旧值
+
+# 泛型 generic
+
+##  基本介绍
+
+- 泛型又称参数化类型，是 JDK5 出现的新特性，解决数据类型的安全性问题
+- 在类声明或实例化时只要指定好需要的具体类型即可
+- 泛型可以保证**如果程序编译时没有发出警告，运行时就不会抛出`ClassCastException`异常**，代码更简洁、健壮
+- 减小了类型转换的次数，提高效率，举例：
+  - 不使用泛型：遍历`ArrayList`元素时会先转成`Object`，还需要转换成对应的类型
+  - 使用泛型：`ArrayList`元素放入和取出时都不需要类型转换，提高效率
+- 泛型的作用：可以在类声明时通过一个标识**类中某个属性的类型**，或是**某个方法的返回类型**，或是**某个方法的参数类型**
+
+## 基本语法
+
+- 泛型的声明
+
+  ```java
+  // 举例
+  interface<T>{} 或 class<K,V>{} 或 class<E>{}
+  ```
+
+- 泛型的实例化
+
+  ```java
+  // 要在类名后面指定类型参数的值(类型)
+  // 举例
+  List<String> strList = new ArrayList<String>();
+  Iterator<Customer> iterator = customers.iterator();
+  ```
+
+## 泛型的注意事项
+
+- 泛型只能是引用类型
+
+- 在给泛型指定具体类型后，可以传入该类型或其子类类型
+
+- 泛型使用形式
+
+  ```java
+  // 举例
+  /*
+  * 以下两种使用形式效果相同
+  * 实际开发中,往往采用简写(采用第二种),编译器会进行类型推断
+  */
+  List<Integer> list = new ArrayList<Integer>();
+  List<Integer> list = new ArrayList<>(); // 推荐用法
+  
+  /*
+  * 以下使用形式,默认赋予的泛型是 <E>, E 就是 Object
+  */
+  List<Integer> list = new ArrayList();
+  ```
+
+## 自定义泛型类
+
+- 类声明时带有泛型，该类就称为自定义泛型类
+
+- 基本语法
+
+  ```java
+  class 类名<T,R,...>{//...表示可以有很多泛型 
+      成员
+  }
+  ```
+
+- 普通成员（属性、方法）可以使用泛型
+
+- **使用泛型的数组不能初始化**：因为数组不能确定元素类型，无法在内存开空间
+
+- **静态方法/属性中不能使用类的泛型**：静态是和类相关的，在类加载时，对象还没有创建
+
+- 泛型类的类型是在创建对象时确定的（编译时）
+
+- 如果在创建对象时没有指定类型，默认为`Object`
+
+## 自定义泛型接口
+
+## 自定义泛型方法
+
+## 泛型的继承和通配符
 
 # 多线程基础
 
