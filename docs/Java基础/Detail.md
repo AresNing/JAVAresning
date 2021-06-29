@@ -1987,7 +1987,14 @@ throw new 自定义异常类名("设置信息");
 ## 迭代器 Iterator - 基本介绍
 
 - 所有实现了`Collection`接口的集合类都有一个`iterator()`方法，用以返回一个实现了`Iterator`接口的对象，即可以返回一个迭代器
+
 - `Iterator`仅用于遍历集合，本身并不存放对象
+
+- 在类的声明中继承`Iterable`，保证了类必然提供一个`iterator()`方法
+
+  ```java
+  implements Iterable
+  ```
 
 ## 迭代器 Iterator - 基本语法
 
