@@ -1,2 +1,5 @@
 * [Homepage](/)
 * [Java基础](/Java基础/)
+* [Java高级](/Java高级/)
+* [JavaWeb](/JavaWeb/)
+* [数据结构与算法](/数据结构与算法/)
