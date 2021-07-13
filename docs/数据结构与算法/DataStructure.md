@@ -115,7 +115,10 @@ public class Queue<item> implements Iterable<item> {
 # 优先队列
 
 - 主要操作：**删除最大元素**和**插入元素**
-- 
+
+# 双端队列
+
+
 
 # 栈 Stack
 
