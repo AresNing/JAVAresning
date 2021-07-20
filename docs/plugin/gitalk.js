@@ -3,7 +3,7 @@
         gitalkConfig = {
             clientID: "1bcf0209c20272d65f95",
             clientSecret: "d0b5c86f7c8a18aa015aa8b99a0f8ff678aea687",
-            repo: "aresning.github.io",
+            repo: "JAVAresning",
             owner: "AresNing",
             admin: ["AresNing"],
             distractionFreeMode: false,
