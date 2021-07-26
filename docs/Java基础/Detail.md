@@ -891,6 +891,12 @@ class 子类 extends 父类{
 
 2. 重写`equals`方法
 
+3. 把**常量放在`equals()`方法的前面**，可以**避免空指针异常**
+
+   ```java
+   常量.equals(变量);
+   ```
+
 ## hashCode 方法
 
 - 使用`hashCode()`，以hashCode的十进制为格式返回对象的地址
