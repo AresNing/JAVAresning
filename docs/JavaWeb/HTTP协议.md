@@ -128,6 +128,7 @@ username=zhangsan
 2. `String[] getParameterValues(String name)`：根据参数名称获取参数值的数组
 3. `Enumeration<String> getParameterNames()`：获取所有请求的参数名称
 4. **`Map<String,String[]> getParameterMap()`：获取所有参数的`Map`集合**
+   - 可使用`BeanUtils`工具类封装`Map`集合到对应的`JavaBean`对象
 
 - **中文乱码问题**
   
@@ -139,7 +140,7 @@ username=zhangsan
     request.setCharacterEncoding("utf-8");
     ```
   
-## 请求转发
+## 请求转发 forward
 
 - 一种在**服务器内部**的资源跳转方式
 
@@ -149,14 +150,14 @@ username=zhangsan
   2. 使用`RequestDispatcher`对象来进行转发：`forward(ServletRequest request, ServletResponse response)`
 
   ```java
-  request.getRequestDispatcher(跳转路径).forward(request, response); 
+  request.getRequestDispatcher("跳转的资源路径").forward(request, response); 
   ```
 
 - 特点
 
   1. 浏览器地址栏路径在资源跳转时不发生变化
   2. 只能转发到当前服务器内部资源中
-  3. 转发是一次请求
+  3. 转发是一次请求，可以使用`Request`对象来共享数据
 
 ## 共享数据
 
@@ -167,15 +168,186 @@ username=zhangsan
   2. `Object getAttitude(String name)`：通过键获取值
   3. `void removeAttribute(String name)`：通过键移除键值对
 
-## 获取 ServletContext
+# 响应消息
 
-- `ServletContext getServletContext()`
+**服务器端发送给客户端的数据**
 
+```html
+<!-- 字符串格式 -->
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=UTF-8
+Content-Length: 101
+Date: Wed, 06 Jun 2018 07:08:42 GMT
 
+<html>
+	<head>
+		<title>$Title$</title>
+	</head>
+	<body>
+		hello , response
+	</body>
+</html>
+```
 
+## 响应行
 
+- 格式：协议/版本 响应状态码 状态码描述
 
+  ```html
+  HTTP/1.1 200 OK
+  ```
 
+- 响应状态码：服务器告诉客户端浏览器本次请求和响应的状态
 
+  - 状态码都是3位数字
+  - 分类
+    - 1XX：服务器接收客户端消息，但没有接受完成，等待一段时间后，发送1XX状态码
+    - 2XX：成功。如：200
+    - 3XX：重定向。如：302（重定向）、304（访问缓存）
+    - 4XX：客户端错误。如：404（请求路径没有对应的资源）、405（请求方式没有对应的`doXxx`方法）
+    - 5XX：服务器端错误。代表：500（服务器内部出现异常）
 
+## 响应头
 
+服务器告知客户端的一些消息
+
+- 格式：响应头名称：响应头值
+- 常见的响应头名称
+  1. `Content-Type`：服务器告诉客户端本次响应体的数据格式以及编码格式
+  2. `Content-disposition`：服务器告诉客户端以什么格式打开响应体数据
+     - `in-line`：默认值，在当前页面内打开响应体
+     - `attachment;filename=xxx`：以附件形式形式打开响应体，文件下载
+
+## 响应空行
+
+- 用于分隔响应头、响应体
+
+## 响应体
+
+- 实际传输的数据
+
+# Response 对象
+
+## Response 功能
+
+- 设置响应行
+- 设置响应头
+- 设置响应体
+
+## 设置响应行
+
+```html
+HTTP/1.1 200 ok
+```
+
+- 设置状态码：`setStatus(int sc)`
+
+## 设置响应头
+
+- `setHeader(String name, String value)`
+
+## 设置响应体
+
+1. 获取输出流
+   - 字符输出流：`PrinterWriter getWriter()`
+   - 字节输出流：`ServletOutputStream getOutputStream()`
+   
+2. 使用输出流，将数据输出到客户端浏览器
+
+   - `write()`
+
+- 中文乱码：**在获取输出流之前**，设置`Response`的编码
+
+   ```java
+   response.setContextType("text/html;charset=utf-8");
+   ```
+
+## 重定向 redirect
+
+- 重定向：一种资源跳转的方式
+
+- 代码实现
+
+  ```java
+  response.sendRedirect("虚拟目录/资源路径");
+  ```
+
+- 特点
+
+  1. 浏览器地址栏路径在重定向时发生变化
+  2. 重定向可以访问其他站点（服务器）的资源
+  3. 重定向是两次请求，不能使用`Request`对象来共享数据
+
+## 路径写法
+
+  1. 相对路径
+     - 当前目录：`./路径`
+     - 上一级目录：`../路径`
+     
+  2. 绝对路径
+
+     判断定义的路径是给客户端或服务器使用？判断请求从客户端或服务器发出？
+
+     - 给客户端浏览器使用：需要加虚拟目录（项目的访问路径）
+       - 虚拟目录动态获取：`request.getContextPath()`
+       - 如：`<a>`、`<form>`、重定向
+     - 给服务器使用：不需要加虚拟目录
+       - 如：转发
+
+# ServletContext 对象
+
+## 基本介绍
+
+- 代表整个 web 应用，可以与程序的容器（服务器）来通信
+
+## 获取
+
+- 通过`Request`对象获取
+
+  ```java
+  request.getServletContext();
+  ```
+
+- 通过`HttpServlet`获取
+
+  ```java
+  this.getServletContext();
+  ```
+
+## 功能
+
+### 获取 MIME 类型
+
+- [MIME类型](https://baike.baidu.com/item/MIME/2900607)：互联网通信过程中定义的一种文件数据类型
+- 格式：`大类型/小类型`，如：`text/html`、`image/jpeg`
+- 获取：`String getMimeType(String file)`
+
+### 共享数据：域对象
+
+1. `setAttribute(String name,Object value)`
+2. `getAttribute(String name)`
+3. `removeAttribute(String name)`
+
+- **`ServletContext`对象范围：所有用户所有请求的数据**（因此需要谨慎使用）
+
+### 获取文件的真实（服务器）路径
+
+- `String getRealPath(String path)`
+
+1. web 目录下资源访问
+
+   ```java
+   String a = context.getRealPath("/a.txt");
+   ```
+
+2. WEB-INF 目录下的资源访问
+
+   ```java
+   String b = context.getRealPath("/WEB-INF/b.txt");
+   ```
+
+3. src 目录下的资源访问
+
+   ```java
+   String c = context.getRealPath("/WEB-INF/classes/c.txt");
+   ```
