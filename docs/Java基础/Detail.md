@@ -2272,11 +2272,11 @@ for(元素类型 元素名 : 集合名或数组名) {
 
 - `Map`与`Collection`并列存在，用于**保存具有映射关系的数据：`Key - Value`**
 
-- `Map`中的`key`和`value`可以是任何引用类型的数据，**封装到`HashMap$Node`对象中**；**`key`存放在`(Set) KeySet`，`value`存放在`(Collection) Values`**
+- `Map`中的`key`和`value`可以是任何引用类型的数据，**封装到`HashMap$Node`对象中；`key`存放在`(Set) KeySet`，`value`存放在`(Collection) Values`**
 
-- `Map`中的**`key`不允许重复**，原因和`HashSet`一样；`key`可以为`null`，只能有一个
+- **`Map`中的`key`不允许重复**，原因和`HashSet`一样；`key`可以为`null`，只能有一个
 
-- `Map`中的**`value`可以重复**；`value`可以为`null`，可以多个
+- **`Map`中的`value`可以重复**；`value`可以为`null`，可以多个
 
 - **常使用`String`类作为`Map`的`key`**
 
