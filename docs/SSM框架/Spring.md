@@ -1,3 +1,4 @@
+# Spring 要点
 # Spring 程序开发基本步骤
 
 ## 导入 Spring 开发的基本包坐标
@@ -260,7 +261,222 @@ public class DynamicFatoryBean {
 - `getBean(Class<T> requiredType)`：参数的数据类型是Class类型，根据类型从容器中匹配 Bean 实例，**当容器中相同类型的 Bean 有多个时，此方法会报错**
   - `UserService userService = applicationContext.getBean(UserService.class);`
 
+# Spring 配置数据源
 
+- DataSource 的创建由 Spring 容器完成
+- DataSource 有无参构造方法，而 Spring 默认就是通过无参构造方法实例化对象的
+
+## 抽取 jdbc 配置文件
+
+- `applicationContext.xml`加载`jdbc.properties`配置文件获得连接信息
+- 首先需要引入`context`命名空间和约束路径
+
+```xml
+<!-- 命名空间 -->
+xmlns:context="http://www.springframework.org/schema/context"
+<!-- 约束路径 -->
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+
+<context:property-placeholder location="classpath:jdbc.properties"/>
+
+<!-- c3p0数据库 -->
+<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+    <!-- property 与 所用数据库的set方法一一对应 -->
+    <property name="driverClass" value="${jdbc.driver}"/>
+    <property name="jdbcUrl" value="${jdbc.url}"/>
+    <property name="user" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+```
+
+# Spring 注解开发
+
+- 注解代替`xml`配置，简化配置，提高开发效率
+
+## Spring 原始注解
+
+![Spring原始注解](pics/image-20210824203358209.png)
+
+- Spring 原始注解主要是替代`<bean>`的配置
+
+- 进行注解开发时，需要在`applicationContext.xml`中配置组件扫描，作用是指定哪个包及其子包下的 Bean 需要进行扫描注解配置
+
+  ```xml
+  <!--注解的组件扫描-->
+  <context:component-scan base-package="xxx.xxx"></context:component-scan>
+  ```
+
+- 使用`@Component`或`@Repository`标识`UserDaoImpl`需要 Spring 进行实例化
+
+  ```java
+  //@Component("userDao")
+  @Repository("userDao")
+  public class UserDaoImpl implements UserDao {
+      @Override
+      public void method() {...}
+  }
+  ```
+
+- 使用`@Compont`或`@Service`标识`UserServiceImpl`需要 Spring 进行实例化
+
+- 使用`@Autowired`或者`@Autowired`+`@Qulifier`或者`@Resource`进行`userDao`的注入
+
+  - 注解配置，可以不写`set`方法，因为注解配置通过反射
+
+  ```java
+  //@Component("userService")
+  @Service("userService")
+  public class UserServiceImpl implements UserService {
+      /*@Autowired
+      @Qualifier("userDao")*/
+      @Resource(name="userDao")
+      private UserDao userDao;
+      @Override
+      public void method() {
+          userDao.method();
+      }
+  }
+  ```
+
+-  使用`@Value`进行字符串的注入
+
+  ```java
+  @Repository("userDao")
+  public class UserDaoImpl implements UserDao {
+      @Value(" 注入普通数据")
+      private String str;
+      @Value("${jdbc.driver}")
+      private String driver;
+      @Override
+      public void method() {
+          System.out.println(str);
+          System.out.println(driver);
+      }
+  }
+  ```
+
+- 使用`@Scope`标注 Bean 的范围
+
+  ```java
+  //@Scope("prototype")
+  @Scope("singleton")
+  public class UserDaoImpl implements UserDao {
+      ...
+  }
+  ```
+
+- 使用`@PostConstruct`标注初始化方法，使用`@PreDestroy`标注销毁方法
+
+  ```java
+  @PostConstruct
+  public void init() {...}
+  @PreDestroy
+  public void destroy() {...}
+  ```
+
+## Spring 新注解
+
+![Spring新注解](pics/image-20210824204407339.png)
+
+- 原始注解还不能全部替代`xml`配置文件，还需要使用注解替代的配置如下
+
+  - 非自定义的Bean的配置：`<bean>`
+  - 加载`properties`文件的配置：`<context:property-placeholder>`
+  - 组件扫描的配置：`<context:component-scan>`
+  - 引入其他文件：`<import>`
+
+- `@Configuration`、`@ComponentScan`、`@Import`
+
+  ```java
+  @Configuration
+  @ComponentScan("xxx.xxx")
+  @Import({DataSourceConfiguration.class}) // 数据源的配置文件, 分模块配置
+  public class SpringConfiguration {
+      ...
+  }
+  ```
+
+- `@PropertySource`、`@Value`
+
+  ```java
+  @PropertySource("classpath:jdbc.properties")
+  public class DataSourceConfiguration {
+      @Value("${jdbc.driver}")
+      private String driver;
+      @Value("${jdbc.url}")
+      private String url;
+      @Value("${jdbc.username}")
+      private String username;
+      @Value("${jdbc.password}")
+      private String password;
+  	...
+  }
+  ```
+
+- `@Bean`，自定义方法，并返回想要实例化的 Bean 类型
+
+  ```java
+  @Bean(name="dataSource")
+  public DataSource getDataSource() throws PropertyVetoException {
+      ComboPooledDataSource dataSource = new ComboPooledDataSource();
+      dataSource.setDriverClass(driver);
+      dataSource.setJdbcUrl(url);
+      dataSource.setUser(username);
+      dataSource.setPassword(password);
+      return dataSource;
+  }
+  ```
+
+## 加载核心配置类创建 Spring 容器
+
+- `AnnotationConfigApplicationContext`：当使用注解配置容器对象时，需要使用此类来创建 spring 容器，它用来读取注解
+
+```java
+
+ApplicationContext applicationContext = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+```
+
+# Spring 集成 Junit
+
+- 简化`Junit`测试代码
+- 让`SpringJunit`负责创建 Spring 容器，但需要将配置文件的名称告诉它
+- 将需要进行测试的 Bean 直接在测试类中进行注入
+
+1. 导入 Spring 集成 Junit 的坐标
+
+```xml
+<!--此处需要注意的是，spring5 及以上版本要求 junit 的版本必须是 4.12 及以上-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-test</artifactId>
+    <version>5.0.2.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+    <scope>test</scope>
+</dependency>
+```
+
+2. 使用`@Runwith`注解替换原来的运行期
+3. 使用`@ContextConfiguration`指定配置文件或配置类
+4. 使用`@Autowired`注入需要测试的对象
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+//加载spring核心配置文件
+//@ContextConfiguration({"classpath:applicationContext.xml"})
+// 加载spring核心配置类
+@ContextConfiguration(classes = {SpringConfiguration.class})
+public class SpringJunitTest {
+    @Autowired
+    private UserService userService;
+    @Test
+    public void testUserService() {...}
+}
+```
 
 
 
