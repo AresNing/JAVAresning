@@ -1804,6 +1804,16 @@ throw new 自定义异常类名("设置信息");
   - 较短的字符串和较长的字符串从第一个字符开始比较，如果一一对应的话就返回两个字符串`length`之差
   - 不对应的话就返回第一个不对应的字符的ASCII码之差
 
+## String不可变的原因
+
+1. 字符串常量池的需要
+   - 字符串常量池是 Java 堆内存中一个特殊的存储区域，当创建一个`String`对象时，假如此字符串值已经存在于常量池中，则不会创建一个新的对象，而是引用已经存在的对象（所谓的节省空间）
+2. 安全性
+   - `String`被许多的 Java 类（库）用来当做参数，比如网络连接地址`url`，文件路径`path`，假若`String`不是固定不变的，将会引起各种安全隐患
+3. `String`对象的`hashcode`问题
+   - 字符串不变性保证了`hash`码的唯一性，因此可以放心地进行缓存
+   - 这也是一种性能优化手段，意味着不必每次都去计算新的`hash`码
+
 # StringBuffer 类
 
 ## 基本介绍
@@ -1869,6 +1879,39 @@ throw new 自定义异常类名("设置信息");
 - `String`：不可变字符，效率低，但复用率高
 - `StringBuffer`：可变字符序列，效率较高，线程安全
 - `StringBuilder`：可变字符序列，效率最高，线程不安全
+
+## String 不可变 - StringBuffer/StringBuilder 可变的源码分析
+
+- `String`底层使用的数据结构是`final`修饰的字符数组，`final`修饰的是常量，所以无法更改
+
+  ```java
+  public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
+      /** The value is used for character storage. */
+      private final char value[];
+      ...
+  }
+  ```
+
+- `String Buffer`或者`String Builder`都继承了`AbstractStringBuilder`，底层数据结构仅仅是`char[] value`，只是一个`char[]`数组，所以可以进行改变
+
+  ```java
+  public final class StringBuffer extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
+      /**
+       * A cache of the last value returned by toString. Cleared
+       * whenever the StringBuffer is modified.
+       */
+      private transient char[] toStringCache;
+      ...
+  }
+  
+  abstract class AbstractStringBuilder implements Appendable, CharSequence {
+      /**
+       * The value is used for character storage.
+       */
+      char[] value;
+      ...
+  }
+  ```
 
 # Arrays 类
 
