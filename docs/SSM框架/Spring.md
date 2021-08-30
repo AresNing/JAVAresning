@@ -466,7 +466,7 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(S
 
 ```java
 @RunWith(SpringJUnit4ClassRunner.class)
-//加载spring核心配置文件
+// 加载spring核心配置文件
 //@ContextConfiguration({"classpath:applicationContext.xml"})
 // 加载spring核心配置类
 @ContextConfiguration(classes = {SpringConfiguration.class})
@@ -478,33 +478,43 @@ public class SpringJunitTest {
 }
 ```
 
+# Spring 集成 Web 环境
 
+- 在 Web 项目中，可以使用`ServletContextListener`监听 Web 应用的启动，**可以在 Web 应用启动时，就加载 Spring 的配置文件**，创建应用上下文对象`ApplicationContext`，在将其存储到最大的域`servletContext`域中，这样就可以**在任意位置从域中获得应用上下文`ApplicationContext`对象**
+- Spring 提供了一个监听器`ContextLoaderListener`，该监听器内部加载Spring 配置文件，创建应用上下文对象，并存储到`ServletContext`域中，提供了一个客户端工具`WebApplicationContextUtils`供使用者获得应用上下文对象
 
+## 步骤
 
+1. 在`web.xml`中配置`ContextLoaderListener`监听器（导入`spring-web`坐标）
 
+   ```xml
+   <!-- 导入spring-web坐标 -->
+   <dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-web</artifactId>
+       <version>5.0.5.RELEASE</version>
+   </dependency>
+   ```
 
+   ```xml
+   <!--全局参数-->
+   <context-param>
+       <param-name>contextConfigLocation</param-name>
+       <param-value>classpath:applicationContext.xml</param-value>
+   </context-param>
+   
+   <!--Spring的监听器-->
+   <listener>
+       <listener-class>
+         org.springframework.web.context.ContextLoaderListener
+       </listener-class>
+   </listener>
+   ```
 
+2. 通过`WebApplicationContextUtils`工具获得应用上下文对象
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   ```java
+   ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext); // 参数为 ServletContext 对象
+   Object obj = applicationContext.getBean("id"); // 通过 applicationContext 获取 Bean 实例化
+   ```
 
