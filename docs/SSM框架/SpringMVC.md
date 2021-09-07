@@ -114,8 +114,8 @@ public class UserController {
                            http://www.springframework.org/schema/mvc/spring-mvc.xsd
                            http://www.springframework.org/schema/context
                            http://www.springframework.org/schema/context/spring-context.xsd">
-<!--配置注解扫描-->
-<context:component-scan base-package="xxx.xxx.controller"/>
+	<!--配置注解扫描-->
+	<context:component-scan base-package="xxx.xxx.controller"/>
 </beans>
 ```
 
@@ -212,10 +212,10 @@ http://www.springframework.org/schema/mvc/spring-mvc.xsd
 - 源码：视图解析器的默认配置为
 
   ```xml
-  REDIRECT_URL_PREFIX = "redirect:"  -- 重定向前缀
-  FORWARD_URL_PREFIX = "forward:"    -- 转发前缀（默认值）
-  prefix = "";     -- 视图名称前缀
-  suffix = "";     -- 视图名称 后缀
+  REDIRECT_URL_PREFIX = "redirect:"  <!-- 重定向前缀 -->
+  FORWARD_URL_PREFIX = "forward:"    <!-- 转发前缀（默认值）-->
+  prefix = "";     <!-- 视图名称 前缀-->
+  suffix = "";     <!-- 视图名称 后缀-->
   ```
 
 - 可以通过属性注入的方式修改视图的前后缀，之后在业务代码中填写资源地址就可以缺省填写*（但感觉会降低代码的可读性）*
@@ -230,7 +230,173 @@ http://www.springframework.org/schema/mvc/spring-mvc.xsd
   </bean>
   ```
 
-  
+
+# SpringMVC 的数据响应
+
+## SpringMVC 数据响应方式
+
+1. **页面跳转**
+   - 直接返回字符串
+   - 通过`ModelAndView`对象返回
+2. **回写数据**
+   - 直接返回字符串
+   - 返回对象或集合
+
+## 页面跳转
+
+### 返回字符串形式
+
+- 直接返回字符串：将返回的字符串与视图解析器的前后缀拼接后跳转
+
+```java
+@RequestMapping("/quick")
+public String quickMethod() {
+    return "index.jsp";
+}
+```
+
+### 返回 ModelAndView 对象
+
+```java
+@RequestMapping("/quick")
+public ModelAndView quickMethod() {
+    ModelAndView modelAndView = new ModelAndView();
+    modelAndView.setViewName("redirect:index.jsp");
+    return modelAndView;
+}
+```
+
+```java
+@RequestMapping("/quick")
+public ModelAndView quickMethod() {
+    ModelAndView modelAndView = new ModelAndView();
+    modelAndView.setViewName("forward:/WEB-INF/index.jsp");
+    return modelAndView;
+}
+```
+
+### 向 request 域存储数据
+
+- 通过 SpringMVC 框架注入的`request`对象`setAttribute()`方法设置（不常用，不利于解耦）
+
+```java
+@RequestMapping("/quick")
+public String quickMethod(HttpServletRequest request){
+    request.setAttribute("name","zhangsan"); // 结合页面里的 EL 表达式或 ajax
+    return "index.jsp";
+}
+```
+
+- 通过`ModelAndView`的`addObject()`方法设置
+
+```java
+@RequestMapping("/quick")
+public ModelAndView quickMethod(){
+    ModelAndView modelAndView = new ModelAndView();
+    modelAndView.setViewName("forward:/WEB-INF/views/index.jsp");
+    modelAndView.addObject("name","lisi"); // 结合页面里的 EL 表达式或 ajax
+    return modelAndView;
+}
+```
+
+## 回写数据
+
+### 直接返回字符串
+
+- 将需要回写的字符串直接返回，但此时**需要通过`@ResponseBody`注解告知 SpringMVC 框架**，方法返回的字符串不是跳转是直接在  http 响应体中返回
+
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public String quickMethod() throws IOException {
+    return "xxxxxxx";
+}
+```
+
+- 返回`json`格式的字符串，使用`json`转换工具`jackson`将 Java 对象转换成`json`格式的字符串
+  1. 导入`jackson`坐标（`jackson-core`，`jackson-databind`，`jackson-annotations`）
+```xml
+<!--jackson-->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>2.9.0</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.9.0</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-annotations</artifactId>
+    <version>2.9.0</version>
+</dependency>
+```
+  2. 创建`ObjectMapper`对象，调用`writeValueAsString`方法将 Java 对象转换`json`格式字符串
+
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public String quickMethod() throws IOException {
+    User user = new User();
+    user.setUsername("zhangsan");
+    user.setAge(18);
+    ObjectMapper objectMapper = new ObjectMapper();
+    String s = objectMapper.writerValueAsString(user);
+    return s;
+}
+```
+
+### 返回对象或集合
+
+- 通过 SpringMVC 对对象或集合进行json字符串的转换并回写，**为处理器适配器配置消息转换参数，指定使用`jackson`进行对象或集合的转换**
+- 两种实现方法：
+  1. 在`spring-mvc.xml`中进行配置`RequestMappingHandlerAdapter`，**配置麻烦，不推荐**
+  2. 在`spring-mvc.xml`中，**使用 mvc 的注解驱动**代替上述配置，**推荐使用**
+
+#### mvc 注解驱动
+
+- 在 SpringMVC 的各个组件中，**处理器映射器`HandlerMapper`、处理器适配器`HandlerAdapter`、视图解析器`ViewSolver`称为 SpringMVC 的三大组件**
+- 使用`<mvc:annotation-driven>`自动加载`RequestMappingHandlerMapping`（处理映射器）和`RequestMappingHandlerAdapter`（ 处 理 适 配 器 ），可用在`spring-xml.xml`配置文件中使用`<mvc:annotation-driven>`替代注解处理器和适配器的配置
+- 使用`<mvc:annotation-driven>`默认底层就会集成`jackson`进行对象或集合的 json 格式字符串的转换
+- **建议在`spring-xml.xml`的前部就使用 mvc 的注解驱动**
+
+1. 在`spring-mvc.xml`中，引入 mvc 的命名空间
+
+   ```xml
+   xmlns:mvc="http://www.springframework.org/schema/mvc"
+   ```
+
+   ```xml
+   http://www.springframework.org/schema/mvc                      
+   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+   ```
+
+2. 在`spring-mvc.xml`中，使用 mvc 的注解驱动
+
+   ```xml
+   <mvc:annotation-driven>
+   ```
+
+3. 返回对象或集合，进行 json 格式字符串的转换
+
+   ```java
+   @RequestMapping("/quick")
+   @ResponseBody
+   public User quickMethod() throws IOException {
+       User user = new User();
+       user.setUsername("zhangsan");
+       user.setAge(18);
+       return user;
+   }
+   ```
+
+# SpringMVC 获得请求数据
+
+
+
+
 
 
 
