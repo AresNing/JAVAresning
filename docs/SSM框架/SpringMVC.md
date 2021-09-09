@@ -394,39 +394,455 @@ public String quickMethod() throws IOException {
 
 # SpringMVC 获得请求数据
 
+SpringMVC 可以接收如下类型的参数：
 
+- **基本类型参数**
+- **POJO 类型参数**
+- **数组类型参数**
+- **集合类型参数**
 
+## 获得基本类型参数
 
+- `Controller`中的业务方法的参数名称要与请求参数的`name`一致，参数值会自动映射匹配
 
+## 获得 POJO 类型参数
 
+- `Controller`中的业务方法的 POJO 参数名称要与请求参数的`name`一致，参数值会自动映射匹配
 
+## 获得数组类型参数
 
+- `Controller`中的业务方法数组名称要与请求参数的`name`一致，参数值会自动映射匹配
 
+## 获得集合类型参数
 
+- **当使用 ajax 提交时，可以指定`contentType`为 json 形式**，在方法参数位置**使用`@RequestBody`可以直接接收集合数据**而无需使用 POJO 进行包装
 
+```html
+<script>
+	//模拟数据
+	var userList = new Array();
+	userList.push({username: "zhangsan",age: "20"});
+	userList.push({username: "lisi",age: "20"});
+	$.ajax({
+		type: "POST",
+		url: "/xxx/quick",
+		data: JSON.stringify(userList),
+		contentType : 'application/json;charset=utf-8'
+	});
+</script>
+```
 
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public void quickMethod(@RequestBody List<User> userList) throws IOException {
+    System.out.println(userList);
+}
+```
 
+## 放行静态资源的方法
 
+- SpringMVC 的前端控制器`DispatcherServlet`对资源进行过滤操作，可以通过以下两种方式指定放行静态资源
 
+1. 在`spring-mvc.xml`配置文件中指定放行的资源
 
+  ```xml
+  <!-- mapping 指定的是访问地址, location 指定的是资源实际保存的地址 -->
+  <mvc:resources mapping="/js/**" location="/js/"/>
+  ```
 
+2. **使用`<mvc:default-servlet-handler/>`标签，在 SpringMVC 框架中找不到资源，就去默认的 servlet 框架中找（tomcat）**
 
+## 请求数据乱码问题
 
+- 当`post`请求时，数据会出现乱码，可以设置一个过滤器来进行编码过滤
 
+```xml
+<filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+	<init-param>
+		<param-name>encoding</param-name>
+		<param-value>UTF-8</param-value>
+	</init-param>
+</filter>
+<filter-mapping>
+	<filter-name>CharacterEncodingFilter</filter-name>
+    <!-- 配置全局乱码filter -->
+	<url-pattern>/*</url-pattern>
+</filter-mapping>
+```
 
+## 参数绑定注解 @RequestParam
 
+- **当请求的参数名称与`Controller`的业务方法参数名称不一致时，需要通过`@RequestParam`注解显式绑定**（强制绑定）
 
+```html
+<form action="${pageContext.request.contextPath}/quick" method="post">
+	<input type="text" name="name"><br>
+	<input type="submit" value=" 提交"><br>
+</form>
+```
 
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public void quickMethod(@RequestParam("name") String username) throws IOException {
+    System.out.println(username);
+}
+```
 
+- 注解`@RequestParam`还有如下参数可以使用
+  - `value`：请求参数名称
+  - `required`：指定的请求参数是否必须包括，默认是`true`，提交时如果没有此参数则报错
+  - `defaultValue`：当没有指定请求参数时，则使用指定的默认值赋值
 
+## 获得 Restful 风格的参数
 
+- `Restful`是一种软件架构风格、设计风格，而不是标准
 
+- `Restful`风格的请求是**使用“url+请求方式”表示一次请求目的**
 
+  > HTTP 协议里面四个表示操作方式的关键字如下：
+  >
+  > - `GET`：用于获取资源
+  > - `POST`：用于新建资源
+  > - `PUT`：用于更新资源
+  > - `DELETE`：用于删除资源
+  >
+  > `Restful`风格的请求：
+  >
+  > - `/user/1    GET `： 得到`id = 1 `的`user`
+  > - `/user/1    DELETE`： 删除`id = 1`的`user`
+  > - `/user/1    PUT`： 更新`id = 1`的`user`
+  > - `/user     POST`： 新增`user`
 
+1. 上述 url 地址`/user/1`中的`1`就是要获得的请求参数，**在 SpringMVC 中可以使用占位符进行参数绑定**，即地址`/user/1`可以写成`/user/{id}`，占位符`{id}`对应的就是`1`的值
+2. 在业务方法中使用`@PathVariable`注解进行占位符的匹配获取
 
+```html
+<!-- 浏览器访问地址 -->
+http://localhost:8080/xxx/quick/zhangsan
+```
 
+```java
+@RequestMapping("/quick/{name}")
+@ResponseBody
+public void quickMethod(@PathVariable(value = "name", required = true) String name) {
+    System.out.println(name);
+}
+```
 
+## 自定义类型转换器
 
+- SpringMVC 不是为所有的数据类型都提供了转换器，例如：日期类型的数据就需要自定义转换器
+
+- 自定义类型转换器的开发步骤：
+
+  1. 定义转换器类实现`Converter`接口
+
+     ```java
+     public class DateConverter implements Converter<String,Date>{
+         @Override
+         public Date convert(String source) {
+             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+             try {
+                 Date date = format.parse(source);
+                 return date;
+             } catch (ParseException e) {
+                 e.printStackTrace();
+             }
+             return null;
+         }
+     }
+     ```
+
+  2. 在配置文件中声明转换器
+
+     ```xml
+     <bean id="converterService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+         <property name="converters">
+             <list>
+                 <bean class="com.njk.converter.DateConverter"/>
+             </list>
+         </property>
+     </bean>
+     ```
+
+  3. 在`<annotation-driven>`中引用转换器
+
+     ```xml
+     <mvc:annotation-driven conversion-service="converterService"/>
+     ```
+
+## 获得 Servlet 相关API
+
+- SpringMVC 支持使用原始 ServletAPI 对象作为控制器`Controller`方法的参数进行注入，常用的对象如下：
+  - `HttpServletRequest`
+  - `HttpServletResponse`
+  - ` HttpSession`
+
+## 获得请求头
+
+### @RequestHeader
+
+- 使用`@RequestHeader`可以获得请求头信息，相当于 JavaWeb 阶段的`request.getHeader(name)`
+- `@RequestHeader`注解的属性如下：
+  - `value`：请求头的名称
+  - `required`：是否必须携带此请求头
+
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public void quickMethod17(
+    @RequestHeader(value = "User-Agent",required = false) String headerValue){
+    System.out.println(headerValue);
+}
+```
+
+### @CookieValue
+
+- 使用`@CookieValue`可以获得指定 Cookie 的值
+- `@CookieValue`注解的属性如下：
+  - `value`：指定 Cookie 的名称
+  - `required`：是否必须携带此 Cookie 
+
+# SpringMVC 获得上传的文件
+
+## 文件上传
+
+- **文件上传客户端三要素**
+
+  1. 表单的提交方式是`post`
+  2. 表单的`enctype`属性是多部分表单形式，即`enctype="multipart/form-data"`
+  3. 表单项`type="file"`
+
+  ```html
+  <form action="${pageContext.request.contextPath}/quick" method="post" enctype="multipart/form-data">
+      名称：<input type="text" name="name"><br>
+      文件：<input type="file" name="file"><br>
+      <input type="submit" value="提交"><br>
+  </form>
+  ```
+
+- **文件上传原理**
+
+  - 当`form`表单修改为多部分表单时，`request.getParameter()`将失效
+  - `enctype="application/x-www-form-urlencoded"`时，`form`表单的正文内容格式是：`key=value&key=value&key=value`
+  - `enctype=""multipart/form-data""`时，`form`表单的正文内容格式是多部分形式
+
+  ![文件上传原理](pics/image-20210908103617450.png)
+
+## 单文件上传步骤
+
+1. 导入`fileupload`和`io`坐标
+
+   ```xml
+   <dependency>
+       <groupId>commons-fileupload</groupId>
+       <artifactId>commons-fileupload</artifactId>
+       <version>1.2.2</version>
+   </dependency>
+   <dependency>
+       <groupId>commons-io</groupId>
+       <artifactId>commons-io</artifactId>
+       <version>2.4</version>
+   </dependency>
+   ```
+
+2. 配置文件上传解析器
+
+   ```xml
+   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+   	<!--上传文件总大小-->
+   	<property name="maxUploadSize" value="5242800"/>
+   	<!--上传单个文件的大小-->
+   	<property name="maxUploadSizePerFile" value="5242800"/>
+   	<!--上传文件的编码类型-->
+   	<property name="defaultEncoding" value="UTF-8"/>
+   </bean>
+   ```
+
+3. 编写文件上传代码
+
+   ```java
+   @RequestMapping("/quick")
+   @ResponseBody
+   public void quickMethod(String name, MultipartFile uploadFile) throws IOException {
+       //获得文件名称
+       String originalFilename = uploadFile.getOriginalFilename();
+       //保存文件, 保存文件的地址
+       uploadFile.transferTo(new File("C:\\upload\\"+originalFilename));
+   }
+   ```
+
+## 多文件上传实现
+
+- 多文件上传，只需要将页面修改为多个文件上传项，将方法参数`MultipartFile`类型修改为`MultipartFile[]`即可
+
+```html
+<h1>多文件上传测试</h1>
+<form action="${pageContext.request.contextPath}/quick" method="post" enctype="multipart/form-data">
+    名称：<input type="text" name="name"><br>
+    文件1：<input type="file" name="uploadFiles"><br>
+    文件2：<input type="file" name="uploadFiles"><br>
+    文件3：<input type="file" name="uploadFiles"><br>
+    <input type="submit" value="提交"><br>
+</form>
+```
+
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public void quickMethod(String name, MultipartFile[] uploadFiles) throws IOException {
+    for(MultipartFile uploadFile : uploadFiles){
+        String originalFilename = uploadFile.getOriginalFilename();
+        uploadFile.transferTo(new File("C:\\upload\\"+originalFilename));
+    }
+}
+```
+
+# Spring JdbcTemplate 基本使用
+
+## 基本介绍
+
+- Spring 框架中提供的一个对象，是对原始繁琐的 Jdbc API 对象的简单封装
+- 如：操作关系型数据的 JdbcTemplate 和 HibernateTemplate，操作 nosql 数据库的RedisTemplate，操作消息队列的JmsTemplate
+
+## JdbcTemplate 开发步骤
+
+1. 导入`spring-jdbc`和`spring-tx`坐标
+
+   ```xml
+   <!--导入spring的jdbc坐标-->
+   <dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-jdbc</artifactId>
+       <version>5.0.5.RELEASE</version>
+   </dependency>
+   <!--导入spring的tx坐标-->
+   <dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-tx</artifactId>
+       <version>5.0.5.RELEASE</version>
+   </dependency>
+   ```
+
+2. 创建数据库表和实体
+
+3. 创建 JdbcTemplate 对象
+
+   ```java
+   JdbcTemplate jdbcTemplate = new JdbcTemplate();
+   jdbcTemplate.setDataSource(dataSource);
+   ```
+
+4. 执行数据库操作
+
+   - **更新操作**
+
+     ```java
+     jdbcTemplate.update(sql, params);
+     ```
+
+   - **查询操作**
+
+     ```java'
+     jdbcTemplate.query(sql, Mapper, params);
+     jdbcTemplate.queryForObject(sql, Mapper, params);
+     ```
+
+## Spring 产生 JdbcTemplate 对象
+
+- 将数据源`DataSource`和`JdbcTemplate`的创建权交给 Spring，在 Spring 容器内部将
+  数据源`DataSource`注入到`JdbcTemplate`模版对象中
+
+- 配置如下（**采用`jdbc.properties`文件配置数据库信息**）
+
+  - `jdbc.properties`文件
+
+  ```xml
+  jdbc.driver=com.mysql.jdbc.Driver
+  jdbc.url=jdbc:mysql://localhost:3306/test
+  jdbc.user=root
+  jdbc.password=root
+  ```
+
+  - `applicationContext.xml`文件
+
+  ```xml
+  <beans xmlns="http://www.springframework.org/schema/beans"
+         xmlns:context="http://www.springframework.org/schema/context"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context.xsd">
+  	
+      <context:property-placeholder location="classpath:jdbc.properties"/>
+      
+      <!--数据源DataSource-->
+      <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+          <property name="driverClass" value="${jdbc.driver}"></property>
+          <property name="jdbcUrl" value="${jdbc.url}"></property>
+          <property name="user" value="${jdbc.user}"></property>
+          <property name="password" value="${jdbc.password}"></property>
+      </bean>
+      <!--JdbcTemplate-->
+      <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+          <property name="dataSource" ref="dataSource"></property>
+      </bean>
+  
+  </beans>
+  ```
+
+  - 从容器中获得`JdbcTemplate`进行添加操作
+
+  ```java
+  @Test
+  public void testSpringJdbcTemplate() throws PropertyVetoException {
+      ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+      JdbcTemplate jdbcTemplate = applicationContext.getBean(JdbcTemplate.class);
+      jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
+  }
+  ```
+
+## JdbcTemplate 常用操作
+
+- **添加操作**
+
+  ```java
+  jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
+  ```
+
+- **修改操作**
+
+  ```java
+  jdbcTemplate.update("update account set money=? where name=?", 1000, "tom");
+  ```
+
+- **删除操作**
+
+  ```java
+  jdbcTemplate.update("delete from account where name=?", "tom");
+  ```
+
+- **查询全部操作**
+
+  ```java
+  List<Account> accounts = jdbcTemplate.query("select * from account", new BeanPropertyRowMapper<Account>(Account.class));
+  ```
+
+- **查询单个对象操作**
+
+  ```java
+  Account account = jdbcTemplate.queryForObject("select * from account where name=?", new BeanPropertyRowMapper<Account>(Account.class), "tom");
+  ```
+
+- **查询单个简单数据**（聚合查询）
+
+  ```java
+  Long aLong = jdbcTemplate.queryForObject("select count(*) from accout", Long.class);
+  ```
 
 
 
