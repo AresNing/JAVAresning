@@ -951,3 +951,79 @@ public class MyInterceptor1 implements HandlerInterceptor {
 
 # SpringMVC 异常处理
 
+## 异常处理的思路
+
+- 系统中异常包括两类：**预期异常**和**运行时异常 RuntimeException**，前者通过捕获异常从而获取异常信息，后者主要通过规范代码开发、测试等手段减少运行时异常的发生
+- 系统的`Dao`、`Service`、`Controller`出现都通过`throws Exception`向上抛出，**最后由SpringMVC 前端控制器交由异常处理器进行异常处理**
+
+![SpringMVC异常处理](pics/image-20210917193323169.png)
+
+## 异常处理两种方式
+
+1. 使用 SpringMVC 提供的简单异常处理器`SimpleMappingExceptionResolver`
+2. 实现 Spring 的异常处理接口`HandlerExceptionResolver`，自定义异常处理器
+
+## 简单异常处理器 SimpleMappingExceptionResolver
+
+- SpringMVC 已经定义好了该类型转换器，**在使用时可以根据项目情况进行相应异常与视图的映射配置**
+
+```xml
+<!-- 配置简单映射异常处理器 -->
+<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+    <!-- 默认错误视图，跳转视图为error.jsp -->
+    <property name="defaultErrorView" value="error"/>
+    <property name="exceptionMappings">
+    	<map>
+            <!-- key:异常类型，value:错误视图 -->
+            <entry key="com.njk.exception.MyException" value="error2"/>
+            <entry key="java.lang.ClassCastException" value="error3"/>
+        </map>
+    </property>
+</bean>
+```
+
+## 自定义异常处理器
+
+1. 创建异常处理器类，实现`HandlerExceptionResolver`
+
+```java
+public class MyExceptionResolver implements HandlerExceptionResolver {
+    @Override
+    public ModeAndView resolveException(HttpServletRequest request, 
+HttpServletResponse response, Object handler, Exception e) {
+        // 处理异常的代码实现
+        // 创建ModelAndView对象
+        ModelAndView modelAndView = new ModelAndView();
+        // 对不同的异常类型进行不同的处理
+        if(e instanceof MyException) {
+            modelAndView.addObject("info", "自定义异常");
+        } else if(e instanceof ClassCastException)  {
+            modelAndView.addObject("info", "类转换异常");
+        }
+        // 错误视图
+        modelAndView.setViewName("error");
+        return modelAndView;
+    }
+}
+```
+
+2. 配置异常处理器
+
+```xml
+<!--自定义异常处理器-->
+<bean id="exceptionResolver" class="com.njk.resolver.MyExceptionResolver"/>
+```
+
+3. 编写异常页面
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+	<title>Title</title>
+</head>
+<body>
+    <h1>这是一个最终异常的显示页面</h1>
+</body>
+</html>
+```
