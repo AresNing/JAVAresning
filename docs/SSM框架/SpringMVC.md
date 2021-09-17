@@ -181,7 +181,7 @@ public class UserController {
     - `params = {"accountName"}`，表示请求参数必须有`accountName`
     - `params = {"money!=100"}`，表示请求参数中`money`不能是`100`
 
-### mvc命名空间引入
+### mvc 命名空间引入
 
 ```xml
 <!-- 命名空间 -->
@@ -844,13 +844,110 @@ public void quickMethod(String name, MultipartFile[] uploadFiles) throws IOExcep
   Long aLong = jdbcTemplate.queryForObject("select count(*) from accout", Long.class);
   ```
 
+# SpringMVC 拦截器 Interceptor
 
+## 基本介绍
 
+- SpringMVC 的拦截器`Interceptor`类似于 Servlet 开发中的过滤器`Filter`，用于对处理器进行**预处理**和**后处理**
+- **拦截器链（Interceptor Chain）**：将拦截器按一定的顺序联结成一条链；在访问被拦截的方法或字段时，拦截器链中的**拦截器就会按其之前定义的顺序被调用**
+- **拦截器是AOP思想的具体实现**
 
+## 拦截器与过滤器的区别
 
+| 区别     | 过滤器                                                | 拦截器                                                       |
+| -------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| 使用范围 | servlet 规范中的一部分，任何 JavaWeb 工程都可以使用   | SpringMVC 框架自带，使用 SpringMVC 框架的工程才能使用        |
+| 拦截范围 | 在`url-pattern`中配置`/*`，可以对所有要访问的资源拦截 | **只会拦截访问的控制器方法**，如果访问的是静态资源（如`jsp`，`js`，`html`，`css`，`image`）是不会进行拦截的 |
 
+## 拦截器配置步骤
 
+### 创建拦截器类实现 HandlerInterceptor 接口
 
+```java
+public class MyInterceptor1 implements HandlerInterceptor {
 
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("preHandle...");
+        // 对请求参数进行判断
+        String param = request.getParameter("param");
+        if("yes".equals(param))
+            // 请求参数符合要求，放行目标方法
+            return true;
+        else {
+            // 请求参数不符合要求，拦截目标方法，并跳转到设定的视图页面
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return false;
+        }
+    }
 
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        // 修改目标方法返回的ModelAndView
+        modelAndView.addObject("name", "AresNing");
+        System.out.println("postHandle...");
+    }
+
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        System.out.println("afterCompletion...");
+    }
+}
+```
+
+### 配置拦截器
+
+```xml
+<!-- 配置拦截器 -->
+<mvc:interceptors>
+	<mvc:interceptor>
+        <mvc:mapping path="/**"/>
+        <bean class="com.njk.interceptor.MyInterceptor1"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+## 多拦截器操作
+
+### 配置多拦截器
+
+```xml
+<!-- 配置拦截器 -->
+<mvc:interceptors>
+	<mvc:interceptor>
+        <mvc:mapping path="/**"/>
+        <bean class="com.njk.interceptor.MyInterceptor1"/>
+    </mvc:interceptor>
+    <mvc:interceptor>
+        <mvc:mapping path="/**"/>
+        <bean class="com.njk.interceptor.MyInterceptor2"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+### 执行顺序
+
+1. `MyInterceptor1`的`preHandle`方法
+2. `MyInterceptor2`的`preHandle`方法
+3. 目标方法执行
+4. `MyInterceptor2`的`postHandle`方法
+5. `MyInterceptor1`的`postHandle`方法
+6. `MyInterceptor2`的`afterCompletion`方法
+7. `MyInterceptor1`的`afterCompletion`方法
+
+## 拦截器方法说明
+
+### preHandle()
+
+- 该方法将在请求处理（目标方法执行）之前进行调用，返回布尔值`Boolean`
+- 若返回值为`false`， 表示请求结束，后续的`Interceptor`和`Controller`都不会再执行
+- 若返回值为`true`，继续调用下一个`Interceptor`的`preHandle`方法
+
+### postHandle()
+
+- 该方法在当前请求进行处理（目标方法执行）之后，视图对象返回之前，进行调用
+- 可以在`postHandle()`方法中对`Controller`处理之后的`ModelAndView`对象进行操作
+
+### afterCompletion()
+
+- 该方法将在整个请求结束之后，也就是在`DispatcherServlet`渲染了对应的视图之后调用
+
+# SpringMVC 异常处理
 
