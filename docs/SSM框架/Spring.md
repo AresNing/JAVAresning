@@ -1,4 +1,3 @@
-# Spring 要点
 # Spring 程序开发基本步骤
 
 ## 导入 Spring 开发的基本包坐标
@@ -112,9 +111,10 @@ public void test() {
 
 - Spring 主配置文件通过`<import>`标签进行加载其他配置文件，分模块开发
 
-  ```xml
-  <import resource="applicationContext-xxx.xml"/>
-  ```
+
+```xml
+<import resource="applicationContext-xxx.xml"/>
+```
 
 # Bean 实例化的三种方式
 
@@ -172,71 +172,73 @@ public class DynamicFatoryBean {
 
 - 在`UserServiceImpl`中添加`setUserDao`方法
 
-  ```java
-  public class UserServiceImpl implements UserService {
-      // 定义userDao对象
-      private UserDao userDao;
-      public void setUserDao(UserDao userDao) {
-          this.userDao = userDao;
-      }
-      @Override
-      public void method() {
-          userDao.method();
-      }
-  }
-  ```
+
+```java
+public class UserServiceImpl implements UserService {
+    // 定义userDao对象
+    private UserDao userDao;
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+    @Override
+    public void method() {
+        userDao.method();
+    }
+}
+```
 
 - 配置 Spring 容器调用`set`方法进行注入
 
-  ```xml
-  <bean id="userDao" class="xxx.xxx.dao.impl.UserDaoImpl"/>
-  
-  <!-- name 指的是UserServiceImpl定义的userDao对象 -->
-  <!-- ref 指的是配置文件定义的bean id -->
-  <bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl">
-      <property name="userDao" ref="userDao"/>
-  </bean>
-  ```
+
+```xml
+<bean id="userDao" class="xxx.xxx.dao.impl.UserDaoImpl"/>
+<!-- name 指的是UserServiceImpl定义的userDao对象 -->
+<!-- ref 指的是配置文件定义的bean id -->
+<bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl">
+    <property name="userDao" ref="userDao"/>
+</bean>
+```
 
 - **P 命名空间注入**本质也是`set`方法注入，具体做法如下：先引入 P 命名空间，再修改注入方式
 
-  ```xml
-  xmlns:p="http://www.springframework.org/schema/p"
-  ```
 
-  ```xml
-  <bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl" p:userDao-
-  ref="userDao"/>
-  ```
+```xml
+xmlns:p="http://www.springframework.org/schema/p"
+```
+
+```xml
+<bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl" p:userDao-ref="userDao"/>
+```
 
 ### 构造方法注入
 
 - 创建有参构造
 
-  ```java
-  public class UserServiceImpl implements UserService {
-      @Override
-      public void method() {
-          ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
-          UserDao userDao = (UserDao) applicationContext.getBean("userDao");
-          userDao.method();
-      }
-  }
-  ```
+
+```java
+public class UserServiceImpl implements UserService {
+    @Override
+    public void method() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        UserDao userDao = (UserDao) applicationContext.getBean("userDao");
+        userDao.method();
+    }
+}
+```
 
 - 配置 Spring 容器调用有参构造时进行注入
 
-  ```xml
-  <bean id="userDao" class="xxx.xxx.dao.impl.UserDaoImpl"/>
-  <bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl">
-      <constructor-arg name="userDao" ref="userDao"></constructor-arg>
-  </bean>
-  ```
+
+```xml
+<bean id="userDao" class="xxx.xxx.dao.impl.UserDaoImpl"/>
+<bean id="userService" class="xxx.xxx.service.impl.UserServiceImpl">
+    <constructor-arg name="userDao" ref="userDao"></constructor-arg>
+</bean>
+```
 
 ## Bean 的依赖注入的数据类型
 
-以`set`方法注入为例，在`<bean>`标签下添加`<property>`标签，进行注入
-
+**以`set`方法注入为例，在`<bean>`标签下添加`<property>`标签，进行注入**
 - 普通数据类型
 - 引用数据类型
 - 集合数据类型：`List`、`Map`、`Properties`等
@@ -299,8 +301,8 @@ http://www.springframework.org/schema/context/spring-context.xsd
 ![Spring原始注解](pics/image-20210824203358209.png)
 
 - Spring 原始注解主要是替代`<bean>`的配置
-
 - 进行注解开发时，需要在`applicationContext.xml`中配置组件扫描，作用是指定哪个包及其子包下的 Bean 需要进行扫描注解配置
+
 
   ```xml
   <!--注解的组件扫描-->
@@ -308,6 +310,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
   ```
 
 - 使用`@Component`或`@Repository`标识`UserDaoImpl`需要 Spring 进行实例化
+
 
   ```java
   //@Component("userDao")
@@ -319,10 +322,9 @@ http://www.springframework.org/schema/context/spring-context.xsd
   ```
 
 - 使用`@Compont`或`@Service`标识`UserServiceImpl`需要 Spring 进行实例化
-
 - 使用`@Autowired`或者`@Autowired`+`@Qulifier`或者`@Resource`进行`userDao`的注入
-
   - 注解配置，可以不写`set`方法，因为注解配置通过反射
+
 
   ```java
   //@Component("userService")
@@ -341,6 +343,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
 
 -  使用`@Value`进行字符串的注入
 
+
   ```java
   @Repository("userDao")
   public class UserDaoImpl implements UserDao {
@@ -358,6 +361,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
 
 - 使用`@Scope`标注 Bean 的范围
 
+
   ```java
   //@Scope("prototype")
   @Scope("singleton")
@@ -367,6 +371,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
   ```
 
 - 使用`@PostConstruct`标注初始化方法，使用`@PreDestroy`标注销毁方法
+
 
   ```java
   @PostConstruct
@@ -381,12 +386,15 @@ http://www.springframework.org/schema/context/spring-context.xsd
 
 - 原始注解还不能全部替代`xml`配置文件，还需要使用注解替代的配置如下
 
+
   - 非自定义的Bean的配置：`<bean>`
   - 加载`properties`文件的配置：`<context:property-placeholder>`
   - 组件扫描的配置：`<context:component-scan>`
   - 引入其他文件：`<import>`
 
+
 - `@Configuration`、`@ComponentScan`、`@Import`
+
 
   ```java
   @Configuration
@@ -398,6 +406,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
   ```
 
 - `@PropertySource`、`@Value`
+
 
   ```java
   @PropertySource("classpath:jdbc.properties")
@@ -416,6 +425,7 @@ http://www.springframework.org/schema/context/spring-context.xsd
 
 - `@Bean`，自定义方法，并返回想要实例化的 Bean 类型
 
+
   ```java
   @Bean(name="dataSource")
   public DataSource getDataSource() throws PropertyVetoException {
@@ -433,7 +443,6 @@ http://www.springframework.org/schema/context/spring-context.xsd
 - `AnnotationConfigApplicationContext`：当使用注解配置容器对象时，需要使用此类来创建 spring 容器，它用来读取注解
 
 ```java
-
 ApplicationContext applicationContext = new AnnotationConfigApplicationContext(SpringConfiguration.class);
 ```
 
@@ -487,6 +496,7 @@ public class SpringJunitTest {
 
 1. 在`web.xml`中配置`ContextLoaderListener`监听器（导入`spring-web`坐标）
 
+
    ```xml
    <!-- 导入spring-web坐标 -->
    <dependency>
@@ -512,6 +522,7 @@ public class SpringJunitTest {
    ```
 
 2. 通过`WebApplicationContextUtils`工具获得应用上下文对象
+
 
    ```java
    ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext); // 参数为 ServletContext 对象
