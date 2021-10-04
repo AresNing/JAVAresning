@@ -529,3 +529,128 @@ public class SpringJunitTest {
    Object obj = applicationContext.getBean("id"); // 通过 applicationContext 获取 Bean 实例化
    ```
 
+#  Spring 事务控制
+
+## 编程式事务控制三大对象
+
+- `PlatformTranscationManager`接口：Spring 的事务管理器，里面提供操作事务的方法
+  - 不同的 Dao 层技术有不同的实现类
+  - Dao 层技术是 jdbc 或 mybatis 时：`org.springframework.jdbc.datasource.DataSourceTransactionManager`
+  - Dao 层技术是 hibernate 时：`org.springframework.orm.hibernate5.HibernateTransactionManager`
+- `TransactionDefinition`：事务的定义信息对象，包含事务的属性信息，如事务隔离级别、事务传播行为（解决调用事务时的事务统一性问题）
+- `TransactionStatus`接口：事务具体的运行状态
+- **总结：平台对象操作事务行为，定义对象设置事务属性，状态对象反馈事务运行过程中的信息**
+
+## 声明式事务控制
+
+- 概念：采用声明的方式来处理事务，声明指在配置文件中声明，在 Spring 配置文件中声明式的处理事务来代替代码式的处理事务
+- 作用：事务管理不侵入开发的组件，事务管理与业务逻辑对象解耦合
+- **Spring 声明式事务控制底层就是 AOP**
+
+## 基于 XML 的声明式事务控制
+
+### 步骤
+
+- 引入`tx`命名空间
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+">
+```
+
+- 配置事务增强
+
+```xml
+<!--配置平台事务管理器-->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="database"/>
+</bean>
+
+<!--事务增强配置-->
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+    <tx:attributes>
+        <tx:method name="*"/>
+    </tx:attributes>
+</tx:advice>
+```
+
+- 配置事务 AOP 织入（`advisor`代表只有一个通知的增强）
+
+```xml
+<!--配置事务的aop织入-->
+<aop:config>
+    <aop:pointcut id="txPointcut" expression="execution(* com.njk.service.impl.*.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+</aop:config>
+```
+
+- 测试代码
+
+### 切点方法的事务参数配置
+
+- `<tx:method>`代表切点方法的事务参数的配置，例如：
+
+```xml
+<tx:method name="transfer" isolation="REPEATABLE_READ" propagation="REQUIRED" timeout="-1" read-only="false"/>
+```
+
+- `name`：切点方法名称
+- `isolation`：事务的隔离级别
+- `propagation`：事务的传播行为
+- `timeout`：超时时间
+- `read-only`：是否只读
+
+## 基于注解的声明式事务控制
+
+### 步骤
+
+- 注解 Dao 层：`@Repository`
+
+```java
+@Repository("userDao")
+public class UserDaoImpl implements UserDao {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    ...
+}
+```
+
+- 注解 Service 层：`@Service`，`@Transactional`
+
+```java
+@Service("userService")
+//@Transactional // 整个类的方法都进行事务控制
+public class UserServiceImpl implements UserService {
+    @Autowired
+    private UserDao userDao;
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public void method() { // 需要事务控制的方法
+        ...
+    }
+}
+```
+
+- 编写`applicationContext.xml`配置文件
+
+```xml
+<!--之前省略datsSource、jdbcTemplate、平台事务管理器的配置-->
+<!--组件扫描-->
+<context:component-scan base-package="com.njk"/>
+
+<!--事务的注解驱动-->
+<tx:annotation-driven transaction-manager="transactionManager"/>
+```
+
+### 注意事项
+
+- 使用`@Transactional`在需要进行**事务控制的类或是方法上修饰**，注解可用的属性同 xml 配置方式，如隔离级别、传播行为等
+- **注解使用在类上，则该类下的所有方法都使用同一套事务参数配置**
+- **注解使用在方法上，不同的方法采用不同的事务参数配置**
+- xml 配置文件中要**开启事务的注解驱动**`<tx:annotation-driven />`
