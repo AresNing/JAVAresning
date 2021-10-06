@@ -106,6 +106,65 @@ sqlSession.close()
 
 ![MyBatis映射文件概述](pics/image-20211006140341753.png)
 
+- 静态 sql 语句：只有普通的 CRUD 操作
+- 动态 sql 语句：包含更多功能，如条件判断、遍历等
+
+## if 标签
+
+- 场景举例：多条件组合查询，比如在`id`如果不为空时可以根据`id`查询，如果`username`不为空时还要加入`username`作为条件
+
+```xml
+<select id="findByCondition" parameterType="user" resultType="user">
+    select * from user
+    <where>
+        <if test="id!=0">
+            and id=#{id}
+        </if>
+        <if test="username!=null">
+            and username=#{username}
+        </if>
+        <if test="password!=null">
+            and password=#{password}
+        </if>
+    </where>
+</select>
+```
+
+## foreach 标签
+
+- 场景举例：循环执行 sql 的拼接操作，如`select * from user where id in (1,2,5)`
+
+```xml
+<select id="findByIds" parameterType="list" resultType="user">
+    select * from user
+    <where>
+        <foreach collection="list" open="id in(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </where>
+</select>
+```
+
+- `<foreach>`标签用于遍历集合，其属性：
+  - `collection`：代表要遍历的集合元素（如`list`，`array`等）
+  - `open`：代表语句的**开始**部分
+  - `close`：代表语句的**结束**部分
+  - `item`：代表遍历集合的每个元素，**生成的变量名**
+  - `sperator`：代表**分隔符**
+
+## sql 片段抽取标签
+
+- 可将重复的 sql 语句提取出来，使用时用`<include>`引用即可，达到 sql 重用的目的
+
+```xml
+<!--抽取sql片段，简化编写-->
+<sql id="selectUser">select * from user</sql>
+
+<select id="findById" parameterType="int" resultType="user">
+    <include refid="selectUser"></include> where id=#{id}
+</select>
+```
+
 # MyBatis 的增删查改操作
 
 ![增删改查映射配置与API](pics/image-20211006141833761.png)
@@ -286,6 +345,72 @@ sqlSession.close();
     void commit()
     void rollback()
     ```
+
+# Mybatis 的 Dao 层实现
+
+- 手动对 Dao 层实现（传统开发）：Dao 接口 + DaoImpl 实现类，不常用
+- **代理方式对 Dao 层实现：Dao / Mapper 接口 + xml 配置实现（动态代理），主流常用方式**
+
+## 代理开发方式
+
+- `Mapper`接口开发方法**只需编写`Mapper`接口（相当于`Dao`接口）**，由Mybatis 框架根据接口定义**创建接口的动态代理对象**
+
+```java
+UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+```
+
+- `Mapper`接口开发需要**遵循以下规范**：
+  1. `Mapper.xml`文件中的`namespace`与`Mapper`接口的全限定名相同
+  2. `Mapper`接口方法名和`Mapper.xml`中定义的每个`statement`的`id`相同
+  3. `Mapper`接口方法的输入参数类型和`Mapper.xml`中定义的每个`sql`的`parameterType`的类型相同
+  4. `Mapper`接口方法的输出参数类型和`Mapper.xml`中定义的每个`sql`的`resultType`的类型相同
+
+![Mapper接口开发规范](pics/image-20211006170917918.png)
+
+## 具体实现
+
+- 编写`UserMapper`接口
+
+```java
+public interface UserMapper {
+    public List<User> findAll() throws IOException;
+    public User findById(int id);
+}
+```
+
+- 编写`UserMapper.xml`配置文件，类型一一对应
+
+```xml
+<mapper namespace="com.itheima.dao.UserMapper">
+    <!--查询操作-->
+    <select id="findAll" resultType="user">
+        select * from user
+    </select>
+    
+    <!--根据id进行查询-->
+    <select id="findById" parameterType="int" resultType="user">
+        select * from user where id=#{id}
+    </select>
+</mapper>
+```
+
+- 测试代理方式
+
+```java
+@Test
+public void testProxyDao() throws IOException {
+    InputStream resourceAsStream = Resources.getResourceAsStream("sqlMapConfig.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(resourceAsStream);
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    //获得MyBatis框架生成的UserMapper接口的实现类
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    List<User> all = mapper.findAll();
+    System.out.println(all);
+
+    User user = mapper.findById(1);
+    System.out.println(user);
+}
+```
 
 
 
