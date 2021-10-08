@@ -322,9 +322,127 @@ sqlSession.close();
 | boolean | Boolean  |
 | ...     | ...      |
 
+## typeHandlers 标签
+
+- MyBatis 在预处理语句（PreparedStatement）中设置参数或者是从结果集中取值时，类型处理器`TypeHandler`将获取的值以合适的方式转换成 Java 类型
+- MyBatis 自带默认的类型处理器（关于基本类型）
+- 可以自定义类型处理器，具体做法为：实现`org.apache.ibatis.type.TypeHandler`接口， 或继承一个很便利的类`org.apache.ibatis.type.BaseTypeHandler`，然后可以选择性地将数据映射到一个 JDBC 类型
+
+### 步骤
+
+1. 定义转换类，让其继承`BaseTypeHandler<T>`，这里的泛型是需要转换的 java 类型（举例：java 中的`Date`类型与数据库的`BIGINT`类型之间的转换）
+2. 覆盖`4`个未实现的方法，其中`setNonNullParameter`为 java 程序设置数据到数据库的回调方法，`getNullableResult`为查询时 mysql 的字符串类型转换成 java 类型的方法
+
+```java
+public class MyDateTypeHandler extends BaseTypeHandler<Date> {
+    // 将java类型 转换为 数据库所需类型
+    public void setNonNullParameter(PreparedStatement preparedStatement, int i, Date date, JdbcType jdbcType) throws SQLException {
+        preparedStatement.setLong(i, date.getTime());
+    }
+    
+    // 将数据库类型 转换为 java类型
+    // String参数  要转换的字段名称
+    // ResultSet 查询出的结果集
+    public Date getNullableResult(ResultSet resultSet, String s) throws SQLException {
+        //获得结果集中需要的数据(long) 转换成Date类型 返回
+        long aLong = resultSet.getLong(s);
+        Date date = new Date(aLong);
+        return date;
+        // return new Date(resultSet.getLong(s));
+    }
+    
+    // 将数据库类型 转换为 java类型
+    public Date getNullableResult(ResultSet resultSet, int i) throws SQLException {
+        long aLong = resultSet.getLong(i);
+        Date date = new Date(aLong);
+        return date;
+        // return new Date(resultSet.getLong(i));
+    }
+    
+    // 将数据库类型 转换为 java类型
+    public Date getNullableResult(CallableStatement callableStatement, int i) throws SQLException {
+        long aLong = callableStatement.getLong(i);
+        Date date = new Date(aLong);
+        return date;
+        // return new Date(callableStatement.getLong(i));
+        // return callableStatement.getDate(i);
+    }
+}
+```
+
+3. 在 MyBatis 核心配置文件中进行注册
+
+```xml
+<!--注册自定义类型处理器-->
+<typeHandlers>
+    <typeHandler handler="com.njk.handler.MyDateTypeHandler"></typeHandler>
+</typeHandlers>
+```
+
+4. 测试
+
+## plugins 标签
+
+- MyBatis 可以使用**第三方的插件**进行功能扩展
+- **分页助手**`PageHelper`是将分页的复杂操作进行封装，使用简单的方式即可获得分页的相关数据
+
+### 步骤
+
+1. 导入通用`PageHelper`的坐标
+
+```xml
+<!-- 分页助手 -->
+<dependency>
+    <groupId>com.github.pagehelper</groupId>
+    <artifactId>pagehelper</artifactId>
+    <version>3.7.5</version>
+</dependency>
+<dependency>
+    <groupId>com.github.jsqlparser</groupId>
+    <artifactId>jsqlparser</artifactId>
+    <version>0.9.7</version>
+</dependency>
+```
+
+2. 在 Mybatis 核心配置文件中配置`PageHelper`插件
+
+```xml
+<!-- 注意：分页助手的插件 配置在mapper之前 -->
+<plugin interceptor="com.github.pagehelper.PageHelper">
+    <!-- 指定方言 -->
+    <property name="dialect" value="mysql"/>
+</plugin>
+```
+
+3. 测试分页数据获取
+
+```java
+@Test
+public void testPageHelper(){
+    //设置分页参数
+    PageHelper.startPage(1,2);
+    List<User> select = userMapper2.select(null);
+    for(User user : select){
+        System.out.println(user);
+    }
+}
+```
+
+```java
+// 获得分页相关的其他参数
+PageInfo<User> pageInfo = new PageInfo<User>(select);
+System.out.println("总条数：" + pageInfo.getTotal());
+System.out.println("总页数：" + pageInfo.getPages());
+System.out.println("当前页：" + pageInfo.getPageNum());
+System.out.println("每页显示长度：" + pageInfo.getPageSize());
+System.out.println("是否第一页：" + pageInfo.isIsFirstPage());
+System.out.println("是否最后一页：" + pageInfo.isIsLastPage());
+```
+
 # Mybatis 相应 API
 
 - `SqlSession`工厂构建器`SqlSessionFactoryBuilder`
+  
   - 常用 API：`SqlSessionFactory build(InputStream inputStream)`
   - 通过加载 Mybatis 的核心文件的输入流的形式构建一个`SqlSessionFactory`对象
 - `SqlSession`工厂对象`SqlSessionFactory`
@@ -412,7 +530,7 @@ public void testProxyDao() throws IOException {
 }
 ```
 
-
+# MyBatis 的多表查询
 
 
 
