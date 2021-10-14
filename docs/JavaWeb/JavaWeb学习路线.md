@@ -82,6 +82,8 @@
 
 ## Dubbo（阿里巴巴开源的PRC框架）
 
+### ZooKeeper
+
 ### fastDFS（分布式的文件系统）
 
 ## Docker（应用容器引擎）
@@ -110,10 +112,11 @@
 
 - MyCat（分库分表）
 
-### 消息中间件
+### 消息中间件 / 消息队列
 
 - ActiveMQ
 - RabbitMQ
+- RocketMQ
 - KafKa
 
 ## 日志分析与监控（ELK）

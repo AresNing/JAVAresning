@@ -13,12 +13,11 @@
 # 指令
 
 - 用于配置 JSP 页面，导入资源文件
-
 - 格式
 
-  ```jsp
-  <%@ 指令名称 属性名1=属性值1 属性名2=属性值2 ... %>
-  ```
+```jsp
+<%@ 指令名称 属性名1=属性值1 属性名2=属性值2 ... %>
+```
 
 - 分类：`page`、`include`、`taglib`
 
@@ -36,17 +35,17 @@
 
 - 页面包含的、导入页面的资源文件
 
-  ```jsp
-  <%@include file="top.jsp"%>
-  ```
+```jsp
+<%@include file="top.jsp"%>
+```
 
 ## taglib
 
 - 导入资源
 
-  ```jsp
-  <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-  ```
+```jsp
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+```
 
   - `prefix`：前缀，自定义的
 
@@ -59,25 +58,15 @@
 
 - 在 JSP 页面中不需要获取和创建，可直接使用的对象
 -  JSP 共有9个内置对象
-
 1. `HttpServletRequest request`：一次请求访问的多个资源（转发）
-
 2. `HttpServletResponse response`：响应对象
-
 3. `JspWriter out`：字符输出流对象，可以将数据输出到页面上；与`response.getWriter()`类似
-
    - 区别：在 tomcat 服务器真正给客户端做出响应之前，会先找`response`缓冲区数据，再找`out`缓冲区数据，**因此`response.getWriter()`数据输出永远在`out.write()`之前**
-
 4. `PageContext pageContext`：当前页面共享数据，还可以获取其他八个内置对象
-
 5. `HttpSession session`：一次会话的多个请求间
-
 6. `ServletContext application`：所有用户间共享数据
-
 7. `Object page`：当前页面（Servlet）的对象`this`
-
 8. `ServletConfig config`：Servlet 的配置对象
-
 9. `Throwable exception`：异常对象
 
     
@@ -163,25 +152,17 @@
 ## 常用的 JSTL 标签
 
 - `<c:if>`:相当于 java 代码的`if`语句
-	
   1. 属性
       - 必须包含`test`属性，接收`boolean`表达式
         - 表达式为`true`，则显示`<if>`标签体内容；如果为`false`，则不显示标签体内容
 	      - `test`属性值通常会结合 EL 表达式一起使用
-    
 	2. 注意：
-  
-    - `<c:if>`标签没有`else`情况，想要`else`情况，需要再定义一个`<c:if>`标签
-  
+    - `<c:if>`标签没有`else`情况，想要`else`情况，需要再定义一个`<c:if>`标签 
 - `<c:choose>`：相当于 java 代码的`switch`语句
-
     1. 使用`<c:choose>`标签声明 --> 相当于`switch`声明
-
     2. 使用`<c:when>`标签做判断 --> 相当于`case`
     3. 使用`<c:otherwise>`标签做其他情况的声明 --> 相当于`default`
-
 - `<c:forEach>`：相当于 java 代码的`for`语句
-
     1. `for`循环，属性如下：
        - `begin`：开始值
        - `end`：结束值

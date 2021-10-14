@@ -532,11 +532,358 @@ public void testProxyDao() throws IOException {
 
 # MyBatis 的多表查询
 
+## 一对一查询
 
+![一对一查询举例](pics/image-20211008211639150.png)
 
+- 举例 sql 语句
 
+```sql
+select * from orders o, user u where o.uid=u.id;
+```
 
+- 创建`Order`和`User`实体
 
+```java
+public class Order {
+    private int id;
+    private Date ordertime;
+    private double total;
+    
+    // 代表当前订单从属于哪一个客户
+    private User user;
+}
+```
 
+```java
+public class User {
+    private int id;
+    private String username;
+    private String password;
+    private Date birthday;
+}
+```
 
+- 创建`OrderMapper`接口
 
+```java
+public interface OrderMapper {
+    List<Order> findAll();
+}
+```
+
+- 配置`OrderMapper.xml`：`<resultMap>`，`<association>`
+
+```xml
+<mapper namespace="com.njk.mapper.OrderMapper">
+    <resultMap id="orderMap" type="com.njk.domain.Order">
+        <result property="id" column="id"></result>
+        <result property="ordertime" column="ordertime"></result>
+        <result property="total" column="total"></result>
+        
+        <association property="user" javaType="com.njk.domain.User">
+            <result column="uid" property="id"></result>
+            <result column="username" property="username"></result>
+            <result column="password" property="password"></result>
+            <result column="birthday" property="birthday"></result>
+        </association>
+    </resultMap>
+    
+    <select id="findAll" resultMap="orderMap">
+        select * from orders o,user u where o.uid=u.id
+    </select>
+</mapper
+```
+
+- 测试代码
+
+## 一对多查询
+
+![一对多查询举例](pics/image-20211008212819509.png)
+
+- 举例 sql 语句
+
+```sql
+select *, o.id oid from user u left join orders o on u.id=o.uid;
+```
+
+- 创建`Order`和`User`实体
+
+```java
+public class User {
+    private int id;
+    private String username;
+    private String password;
+    private Date birthday;
+    
+    //代表当前用户具备哪些订单
+    private List<Order> orderList;
+}
+```
+
+- 创建`UserMapper`接口
+
+```java
+public interface UserMapper {
+    List<User> findAll();
+}
+```
+
+- 配置`UserMapper.xml`：`<resultMap>`，`<collection>`
+
+```xml
+<mapper namespace="com.njk.mapper.UserMapper">
+    <resultMap id="userMap" type="com.njk.domain.User">
+        <result column="id" property="id"></result>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="birthday" property="birthday"></result>
+        <!--配置集合信息
+            property:集合名称
+            ofType:当前集合中的数据类型
+        -->
+        <collection property="orderList" ofType="com.njk.domain.Order">
+            <result column="oid" property="id"></result>
+            <result column="ordertime" property="ordertime"></result>
+            <result column="total" property="total"></result>
+        </collection>
+    </resultMap>
+    
+    <select id="findAll" resultMap="userMap">
+        select *,o.id oid from user u left join orders o on u.id=o.uid
+    </select>
+</mapper>
+```
+
+- 测试代码
+
+## 多对多查询
+
+![多对多查询举例](pics/image-20211008213709906.png)
+
+- 举例 sql 语句
+
+```sql
+select u.*, r.*, r.id rid from user u left join user_role ur on u.id=ur.user_id inner join role r on ur.role_id=r.id;
+```
+
+- 创建`Role`和`User`实体
+
+```java
+public class User {
+    private int id;
+    private String username;
+    private String password;
+    private Date birthday;
+    
+    //代表当前用户具备哪些订单
+    private List<Order> orderList;
+    //代表当前用户具备哪些角色
+    private List<Role> roleList;
+}
+```
+
+```java
+public class Role {
+    private int id;
+    private String rolename;
+}
+```
+
+- 创建`UserMapper`接口
+
+```java
+public interface UserMapper {
+    List<User> findAllUserAndRole();
+}
+```
+
+- 配置`UserMapper.xml`：`<resultMap>`，`<collection>`
+
+```xml
+<mapper namespace="com.njk.mapper.UserMapper">
+    <resultMap id="userRoleMap" type="com.njk.domain.User">
+        <result column="id" property="id"></result>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="birthday" property="birthday"></result>
+        <!--配置集合信息
+            property:集合名称
+            ofType:当前集合中的数据类型
+        -->
+        <collection property="roleList" ofType="com.njk.domain.Role">
+            <result column="rid" property="id"></result>
+            <result column="rolename" property="rolename"></result>
+        </collection>
+    </resultMap>
+    
+    <select id="findAllUserAndRole" resultMap="userRoleMap">
+        select u.*, r.*, r.id rid from user u left join user_role ur on u.id=ur.user_id inner join role r on ur.role_id=r.id
+    </select>
+</mapper>
+```
+
+- 测试代码
+
+# MyBatis 的注解开发
+
+## 常用注解
+
+- `@Insert`：实现新增
+- `@Update`：实现更新
+- `@Delete`：实现删除
+- `@Select`：实现查询
+- `@Result`：实现结果集封装
+- `@Results`：可以与`@Result`一起使用，封装多个结果集
+
+![结果集封装的注解](pics/image-20211009130439609.png)
+
+- `@One`：实现一对一结果集封装
+- `@Many`：实现一对多结果集封装
+
+![多表查询结果集封装的注解](pics/image-20211009130517380.png)
+
+## 核心配置文件
+
+- 修改 MyBatis 的核心配置文件，使用注解替代的映射文件，**所以只需加载使用了注解的`Mapper`接口**即可
+
+```xml
+<mappers>
+    <!--扫描使用注解的类-->
+    <mapper class="com.njk.mapper.UserMapper"></mapper>
+</mappers>
+```
+
+- 或者**指定扫描包含映射关系的接口所在的包**
+
+```xml
+<mappers>
+    <!--扫描使用注解的类所在的包-->
+    <package name="com.njk.mapper"></package>
+</mappers>
+```
+
+## 一对一查询
+
+![一对一查询举例](pics/image-20211008211639150.png)
+
+- 举例 sql 语句
+
+```sql
+select * from orders;
+select * from user where id=查询出订单的uid;
+```
+
+- 创建`Order`和`User`实体
+- 创建`OrderMapper`接口，注解配置`OrderMapper`
+
+```java
+public interface OrderMapper {
+
+    @Select("select * from orders")
+    @Results({
+            @Result(id = true, column = "id", property = "id"), // 声明主键为id
+            @Result(column = "ordertimes", property = "ordertimes"),
+            @Result(column = "total", property = "total"),
+            @Result(
+                    property = "user",
+                    column = "uid",
+                    javaType = User.class,
+                    one = @One(select = "com.njk.mapper.UserMapper.findById")
+            )
+    })
+    public List<Order> findAll();
+}
+```
+
+```java
+public interface UserMapper {
+    @Select("select * from user where id=#{id}")
+    public User findById(int id);
+}
+```
+
+- 测试代码
+
+## 一对多查询
+
+![一对多查询举例](pics/image-20211008212819509.png)
+
+- 举例 sql 语句
+
+```sql
+select * from user;
+select * from orders where uid=查询出用户的id;
+```
+
+- 创建`Order`和`User`实体
+- 创建`UserMapper`接口，注解配置`UserMapper`
+
+```java
+public interface UserMapper {
+    @Select("select * from user")
+    @Results({
+            @Result(id = true, column = "id", property = "id"),
+            @Result(column = "username", property = "username"),
+            @Result(column = "password", property = "password"),
+            @Result(
+                    property = "orderList",
+                    column = "id",
+                    javaType = List.class,
+                    many = @Many(select = "com.njk.mapper.OrderMapper.findByUid")
+            )
+    })
+    public List<User> findUserAndOrderAll();
+}
+```
+
+```java
+public interface OrderMapper {
+    @Select("select * from orders where uid=#{uid}")
+    public List<Order> findByUid(int uid);
+}
+```
+
+- 测试代码
+
+## 多对多查询
+
+![多对多查询举例](pics/image-20211008213709906.png)
+
+- 举例 sql 语句
+
+```sql
+select * from user;
+select * from user_role ur, role r where ur.role_id=r.id and ur.user_id=用户的id
+```
+
+- 创建`Role`和`User`实体
+- 创建`UserMapper`接口，注解配置`UserMapper`
+
+```java
+public interface UserMapper {
+    
+    @Select("select * from user")
+    @Results({
+            @Result(id = true, column = "id", property = "id"),
+            @Result(column = "username", property = "username"),
+            @Result(column = "password", property = "password"),
+            @Result(
+                    property = "roleList",
+                    column = "id",
+                    javaType = List.class,
+                    many = @Many(select = "com.njk.mapper.RoleMapper.findByUid")
+            )
+    })
+    public List<User> findUserAndRoleAll();
+}
+```
+
+```java
+public interface RoleMapper {
+    @Select("select * from user_role ur, role r where ur.role_id=r.id and ur.user_id=#{uid}")
+    public List<Role> findByUid(int uid);
+}
+```
+
+- 测试代码

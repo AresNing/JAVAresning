@@ -10,37 +10,37 @@
 
 - 导入 Spring 和 SpringMVC 的坐标
 
-  ```xml
-  <!--Spring坐标-->
-  <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>5.0.5.RELEASE</version>
-  </dependency>
-  <!--SpringMVC坐标-->
-  <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>5.0.5.RELEASE</version>
-  </dependency>
-  ```
+```xml
+<!--Spring坐标-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.0.5.RELEASE</version>
+</dependency>
+<!--SpringMVC坐标-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+    <version>5.0.5.RELEASE</version>
+</dependency>
+```
 
 - 导入 Servlet 和 Jsp 的坐标
 
-  ```xml
-  <!--Servlet坐标-->
-  <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-  </dependency>
-  <!--Jsp坐标-->
-  <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>2.0</version>
-  </dependency>
-  ```
+```xml
+<!--Servlet坐标-->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+</dependency>
+<!--Jsp坐标-->
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>jsp-api</artifactId>
+    <version>2.0</version>
+</dependency>
+```
 
 ## 配置 SpringMVC 核心控制器 DispatcherServlet
 
@@ -64,25 +64,25 @@
 
 - 创建`Controller`和业务方法
 
-  ```java
-  public class UserController {
-      public String quickMethod() {
-          ...
-          return "index.jsp"; // 跳转的视图页面
-      }
-  }
-  ```
+```java
+public class UserController {
+    public String quickMethod() {
+        ...
+        return "index.jsp"; // 跳转的视图页面
+    }
+}
+```
 
 - 创建视图页面`index.jsp`
 
-  ```jsp
-  <!-- index.jsp -->
-  <html>
-      <body>
-          ...
-      </body>
-  </html>
-  ```
+```jsp
+<!-- index.jsp -->
+<html>
+    <body>
+        ...
+    </body>
+</html>
+```
 
 ## 使用注解配置 Controller 类中业务方法的映射地址
 
@@ -207,28 +207,27 @@ http://www.springframework.org/schema/mvc/spring-mvc.xsd
 
 ### 视图解析器
 
-`org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.view.InternalResourceViewResolver`
-
+- class=`org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.view.InternalResourceViewResolver`
 - 源码：视图解析器的默认配置为
 
-  ```xml
-  REDIRECT_URL_PREFIX = "redirect:"  <!-- 重定向前缀 -->
-  FORWARD_URL_PREFIX = "forward:"    <!-- 转发前缀（默认值）-->
-  prefix = "";     <!-- 视图名称 前缀-->
-  suffix = "";     <!-- 视图名称 后缀-->
-  ```
+```xml
+REDIRECT_URL_PREFIX = "redirect:"  <!-- 重定向前缀 -->
+FORWARD_URL_PREFIX = "forward:"    <!-- 转发前缀（默认值）-->
+prefix = "";     <!-- 视图名称 前缀-->
+suffix = "";     <!-- 视图名称 后缀-->
+```
 
 - 可以通过属性注入的方式修改视图的前后缀，之后在业务代码中填写资源地址就可以缺省填写*（但感觉会降低代码的可读性）*
 
-  ```xml
-  <!--配置内部资源视图解析器-->
-  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-      <!--资源地址前缀为/WEB-INF/views/-->
-      <property name="prefix" value="/WEB-INF/views/"></property>
-      <!--资源地址后缀为.jsp-->
-      <property name="suffix" value=".jsp"></property>
-  </bean>
-  ```
+```xml
+<!--配置内部资源视图解析器-->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <!--资源地址前缀为/WEB-INF/views/-->
+    <property name="prefix" value="/WEB-INF/views/"></property>
+    <!--资源地址后缀为.jsp-->
+    <property name="suffix" value=".jsp"></property>
+</bean>
+```
 
 
 # SpringMVC 的数据响应
@@ -364,37 +363,37 @@ public String quickMethod() throws IOException {
 
 1. 在`spring-mvc.xml`中，引入 mvc 的命名空间
 
-   ```xml
-   xmlns:mvc="http://www.springframework.org/schema/mvc"
-   ```
+```xml
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+```
 
-   ```xml
-   http://www.springframework.org/schema/mvc                      
-   http://www.springframework.org/schema/mvc/spring-mvc.xsd
-   ```
+```xml
+http://www.springframework.org/schema/mvc                      
+http://www.springframework.org/schema/mvc/spring-mvc.xsd
+```
 
 2. 在`spring-mvc.xml`中，使用 mvc 的注解驱动
 
-   ```xml
-   <mvc:annotation-driven>
-   ```
+```xml
+<mvc:annotation-driven/>
+```
 
 3. 返回对象或集合，进行 json 格式字符串的转换
 
-   ```java
-   @RequestMapping("/quick")
-   @ResponseBody
-   public User quickMethod() throws IOException {
-       User user = new User();
-       user.setUsername("zhangsan");
-       user.setAge(18);
-       return user;
-   }
-   ```
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public User quickMethod() throws IOException {
+    User user = new User();
+    user.setUsername("zhangsan");
+    user.setAge(18);
+    return user;
+}
+```
 
 # SpringMVC 获得请求数据
 
-SpringMVC 可以接收如下类型的参数：
+**SpringMVC 可以接收如下类型的参数：**
 
 - **基本类型参数**
 - **POJO 类型参数**
@@ -446,12 +445,16 @@ public void quickMethod(@RequestBody List<User> userList) throws IOException {
 
 1. 在`spring-mvc.xml`配置文件中指定放行的资源
 
-  ```xml
-  <!-- mapping 指定的是访问地址, location 指定的是资源实际保存的地址 -->
-  <mvc:resources mapping="/js/**" location="/js/"/>
-  ```
+```xml
+<!-- mapping 指定的是访问地址, location 指定的是资源实际保存的地址 -->
+<mvc:resources mapping="/js/**" location="/js/"/>
+```
 
 2. **使用`<mvc:default-servlet-handler/>`标签，在 SpringMVC 框架中找不到资源，就去默认的 servlet 框架中找（tomcat）**
+
+```xml
+<mvc:default-servlet-handler/>
+```
 
 ## 请求数据乱码问题
 
@@ -500,9 +503,7 @@ public void quickMethod(@RequestParam("name") String username) throws IOExceptio
 ## 获得 Restful 风格的参数
 
 - `Restful`是一种软件架构风格、设计风格，而不是标准
-
 - `Restful`风格的请求是**使用“url+请求方式”表示一次请求目的**
-
   > HTTP 协议里面四个表示操作方式的关键字如下：
   >
   > - `GET`：用于获取资源
@@ -536,44 +537,42 @@ public void quickMethod(@PathVariable(value = "name", required = true) String na
 ## 自定义类型转换器
 
 - SpringMVC 不是为所有的数据类型都提供了转换器，例如：日期类型的数据就需要自定义转换器
-
 - 自定义类型转换器的开发步骤：
-
   1. 定义转换器类实现`Converter`接口
 
-     ```java
-     public class DateConverter implements Converter<String,Date>{
-         @Override
-         public Date convert(String source) {
-             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-             try {
-                 Date date = format.parse(source);
-                 return date;
-             } catch (ParseException e) {
-                 e.printStackTrace();
-             }
-             return null;
-         }
-     }
-     ```
+```java
+public class DateConverter implements Converter<String,Date>{
+    @Override
+    public Date convert(String source) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date date = format.parse(source);
+            return date;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+```
 
   2. 在配置文件中声明转换器
 
-     ```xml
-     <bean id="converterService" class="org.springframework.context.support.ConversionServiceFactoryBean">
-         <property name="converters">
-             <list>
-                 <bean class="com.njk.converter.DateConverter"/>
-             </list>
-         </property>
-     </bean>
-     ```
+```xml
+<bean id="converterService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+    <property name="converters">
+        <list>
+            <bean class="com.njk.converter.DateConverter"/>
+        </list>
+    </property>
+</bean>
+```
 
   3. 在`<annotation-driven>`中引用转换器
 
-     ```xml
-     <mvc:annotation-driven conversion-service="converterService"/>
-     ```
+```xml
+<mvc:annotation-driven conversion-service="converterService"/>
+```
 
 ## 获得 Servlet 相关API
 
@@ -637,44 +636,44 @@ public void quickMethod17(
 
 1. 导入`fileupload`和`io`坐标
 
-   ```xml
-   <dependency>
-       <groupId>commons-fileupload</groupId>
-       <artifactId>commons-fileupload</artifactId>
-       <version>1.2.2</version>
-   </dependency>
-   <dependency>
-       <groupId>commons-io</groupId>
-       <artifactId>commons-io</artifactId>
-       <version>2.4</version>
-   </dependency>
-   ```
+```xml
+<dependency>
+    <groupId>commons-fileupload</groupId>
+    <artifactId>commons-fileupload</artifactId>
+    <version>1.2.2</version>
+</dependency>
+<dependency>
+    <groupId>commons-io</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>2.4</version>
+</dependency>
+```
 
 2. 配置文件上传解析器
 
-   ```xml
-   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-   	<!--上传文件总大小-->
-   	<property name="maxUploadSize" value="5242800"/>
-   	<!--上传单个文件的大小-->
-   	<property name="maxUploadSizePerFile" value="5242800"/>
-   	<!--上传文件的编码类型-->
-   	<property name="defaultEncoding" value="UTF-8"/>
-   </bean>
-   ```
+```xml
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <!--上传文件总大小-->
+    <property name="maxUploadSize" value="5242800"/>
+    <!--上传单个文件的大小-->
+    <property name="maxUploadSizePerFile" value="5242800"/>
+    <!--上传文件的编码类型-->
+    <property name="defaultEncoding" value="UTF-8"/>
+</bean>
+```
 
 3. 编写文件上传代码
 
-   ```java
-   @RequestMapping("/quick")
-   @ResponseBody
-   public void quickMethod(String name, MultipartFile uploadFile) throws IOException {
-       //获得文件名称
-       String originalFilename = uploadFile.getOriginalFilename();
-       //保存文件, 保存文件的地址
-       uploadFile.transferTo(new File("C:\\upload\\"+originalFilename));
-   }
-   ```
+```java
+@RequestMapping("/quick")
+@ResponseBody
+public void quickMethod(String name, MultipartFile uploadFile) throws IOException {
+    //获得文件名称
+    String originalFilename = uploadFile.getOriginalFilename();
+    //保存文件, 保存文件的地址
+    uploadFile.transferTo(new File("C:\\upload\\"+originalFilename));
+}
+```
 
 ## 多文件上传实现
 
@@ -713,65 +712,59 @@ public void quickMethod(String name, MultipartFile[] uploadFiles) throws IOExcep
 
 1. 导入`spring-jdbc`和`spring-tx`坐标
 
-   ```xml
-   <!--导入spring的jdbc坐标-->
-   <dependency>
-       <groupId>org.springframework</groupId>
-       <artifactId>spring-jdbc</artifactId>
-       <version>5.0.5.RELEASE</version>
-   </dependency>
-   <!--导入spring的tx坐标-->
-   <dependency>
-       <groupId>org.springframework</groupId>
-       <artifactId>spring-tx</artifactId>
-       <version>5.0.5.RELEASE</version>
-   </dependency>
-   ```
+```xml
+<!--导入spring的jdbc坐标-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-jdbc</artifactId>
+    <version>5.0.5.RELEASE</version>
+</dependency>
+<!--导入spring的tx坐标-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-tx</artifactId>
+    <version>5.0.5.RELEASE</version>
+</dependency>
+```
 
 2. 创建数据库表和实体
-
 3. 创建 JdbcTemplate 对象
 
-   ```java
-   JdbcTemplate jdbcTemplate = new JdbcTemplate();
-   jdbcTemplate.setDataSource(dataSource);
-   ```
+```java
+JdbcTemplate jdbcTemplate = new JdbcTemplate();
+jdbcTemplate.setDataSource(dataSource);
+```
 
 4. 执行数据库操作
-
    - **更新操作**
 
-     ```java
-     jdbcTemplate.update(sql, params);
-     ```
-
+```java
+jdbcTemplate.update(sql, params);
+```
    - **查询操作**
 
-     ```java'
-     jdbcTemplate.query(sql, Mapper, params);
-     jdbcTemplate.queryForObject(sql, Mapper, params);
-     ```
+```java'
+jdbcTemplate.query(sql, Mapper, params);
+jdbcTemplate.queryForObject(sql, Mapper, params);
+```
 
 ## Spring 产生 JdbcTemplate 对象
 
-- 将数据源`DataSource`和`JdbcTemplate`的创建权交给 Spring，在 Spring 容器内部将
-  数据源`DataSource`注入到`JdbcTemplate`模版对象中
-
+- 将数据源`DataSource`和`JdbcTemplate`的创建权交给 Spring，在 Spring 容器内部将数据源`DataSource`注入到`JdbcTemplate`模版对象中
 - 配置如下（**采用`jdbc.properties`文件配置数据库信息**）
-
   - `jdbc.properties`文件
 
-  ```xml
-  jdbc.driver=com.mysql.jdbc.Driver
-  jdbc.url=jdbc:mysql://localhost:3306/test
-  jdbc.user=root
-  jdbc.password=root
-  ```
+```xml
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/test
+jdbc.user=root
+jdbc.password=root
+```
 
   - `applicationContext.xml`文件
 
-  ```xml
-  <beans xmlns="http://www.springframework.org/schema/beans"
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
          xmlns:context="http://www.springframework.org/schema/context"
          xsi:schemaLocation="http://www.springframework.org/schema/beans
          http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -791,58 +784,57 @@ public void quickMethod(String name, MultipartFile[] uploadFiles) throws IOExcep
       <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
           <property name="dataSource" ref="dataSource"></property>
       </bean>
-  
-  </beans>
-  ```
+</beans>
+```
 
   - 从容器中获得`JdbcTemplate`进行添加操作
 
-  ```java
-  @Test
-  public void testSpringJdbcTemplate() throws PropertyVetoException {
-      ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
-      JdbcTemplate jdbcTemplate = applicationContext.getBean(JdbcTemplate.class);
-      jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
-  }
-  ```
+```java
+@Test
+public void testSpringJdbcTemplate() throws PropertyVetoException {
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+    JdbcTemplate jdbcTemplate = applicationContext.getBean(JdbcTemplate.class);
+    jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
+}
+```
 
 ## JdbcTemplate 常用操作
 
 - **添加操作**
 
-  ```java
-  jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
-  ```
+```java
+jdbcTemplate.update("insert into account values(?,?)","zhangsan",5000);
+```
 
 - **修改操作**
 
-  ```java
-  jdbcTemplate.update("update account set money=? where name=?", 1000, "tom");
-  ```
+```java
+jdbcTemplate.update("update account set money=? where name=?", 1000, "tom");
+```
 
 - **删除操作**
 
-  ```java
-  jdbcTemplate.update("delete from account where name=?", "tom");
-  ```
+```java
+jdbcTemplate.update("delete from account where name=?", "tom");
+```
 
 - **查询全部操作**
 
-  ```java
-  List<Account> accounts = jdbcTemplate.query("select * from account", new BeanPropertyRowMapper<Account>(Account.class));
-  ```
+```java
+List<Account> accounts = jdbcTemplate.query("select * from account", new BeanPropertyRowMapper<Account>(Account.class));
+```
 
 - **查询单个对象操作**
 
-  ```java
-  Account account = jdbcTemplate.queryForObject("select * from account where name=?", new BeanPropertyRowMapper<Account>(Account.class), "tom");
-  ```
+```java
+Account account = jdbcTemplate.queryForObject("select * from account where name=?", new BeanPropertyRowMapper<Account>(Account.class), "tom");
+```
 
 - **查询单个简单数据**（聚合查询）
 
-  ```java
-  Long aLong = jdbcTemplate.queryForObject("select count(*) from accout", Long.class);
-  ```
+```java
+Long aLong = jdbcTemplate.queryForObject("select count(*) from accout", Long.class);
+```
 
 # SpringMVC 拦截器 Interceptor
 

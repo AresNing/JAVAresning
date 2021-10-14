@@ -2550,4 +2550,12 @@ for(元素类型 元素名 : 集合名或数组名) {
 
 - `JUnit`是一个Java语言的**单元测试框架**
 - 多数Java的开发环境都已经集成了`JUnit`作为单元测试的工具
-- 在需要测试的方法前添加`@Test`语句，`alt + Enter` -> `Add 'JUnit5' to classpath`配置`JUnit`
+- 在需要测试的方法前添加`@Test`注解，`alt + Enter` -> `Add 'JUnit5' to classpath`配置`JUnit`
+
+## 基本注解
+
+- `@Test`：使用该注解标注的`public void`方法会表示为一个测试方法
+- `@Before`：表示在任意使用`@Test`注解标注的`public void`方法执行之前执行
+- `@After`：表示在任意使用`@Test`注解标注的`public void`方法执行之后执行
+- `@BeforeClass`：表示在类中的任意`public static void`方法执行之前执行
+- `@AfterClass`：表示在类中的任意`public static void`方法执行之后执行
