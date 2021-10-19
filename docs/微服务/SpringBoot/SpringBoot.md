@@ -474,15 +474,162 @@ class SpringbootRedisApplicationTests {
 
 # SpringBoot 自动配置
 
+## Condition
 
+### 基本概念
 
+- `Condition`是在 Spring 4.0 增加的**条件判断功能**，通过该功能可以**实现选择性的创建 Bean 操作**
 
+### 自定义条件
 
+1. 定义条件类
+   - 自定义类实现`Condition`接口，重写`matches`方法，在`matches`方法中进行逻辑判断，返回`boolean`值
+   - `matches`方法有两个参数
+     - `context`：上下文对象，可以获取属性值、获取类加载器、获取`BeanFactory`等
+     - `metedata`：元数据对象，用于获取注解属性
+2. 判断条件：在初始化 Bean 时，使用`@Conditional(自定义条件类.class)`注解
 
+### 自定义条件注解
 
+1. 定义条件注解
+   - 定义条件注解的属性值
+   - 使用`@Conditional(自定义条件类.class)`注解自定义的条件注解，绑定自定义条件类的逻辑判断
+   - 自定义条件类通过获取注解属性值进行逻辑判断，实现**动态判断**
+2. 判断条件：在初始化 Bean 时，使用`@自定义条件注解(属性值)`注解，实现动态判断
 
+### SpringBoot 提供的常用条件注解
 
+- `ConditionalOnProperty`：判断配置文件中是否有对应属性和值才初始化Bean
+- `ConditionalOnClass`：判断环境中是否有对应字节码文件才初始化 Bean
+- `ConditionalOnMissingBean`：判断环境中没有对应 Bean 才初始化Bean
 
+## 切换内置 web 服务器
+
+- SpringBoot 的 web 环境中**默认使用 tomcat 作为内置服务器**
+- SpringBoot 提供了**4种内置服务器**，可供选择
+  1. **Jetty**
+  2. **Netty**
+  3. **Tomcat**
+  4. **Undertow**
+- 通过修改`pom.xml`切换内置 web 服务器
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <!--排除tomcat的依赖-->
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+</dependency>
+
+<!--引入jetty的依赖-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jetty</artifactId>
+</dependency>
+```
+
+## @Enable* 注解
+
+- **SpringBoot 中提供了很多`Enable`开头的注解，这些注解都是用于动态启用某些功能的**
+- **其底层原理是使用`@Import`注解导入一些配置类，实现 Bean 的动态加载**
+
+```java
+@SpringBootApplication
+@EnableUser // 很多Enable开头的注解，用于动态启用某些功能的
+public class SpringbootEnableApplication {
+    ...
+}
+```
+
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Import(UserConfig.class) // 底层原理是@Import注解导入一些配置类，实现 Bean 的动态加载
+public @interface EnableUser {
+}
+```
+
+## @Import 注解
+
+- `@Enable*`底层依赖于`@Import`注解导入一些配置类，使用`@Import`导入的类会被Spring 加载到 IOC 容器中
+- `@Import`提供4种用法
+
+1. 导入`Bean`
+
+```java
+@Import(User.class)
+@SpringBootApplication
+public class SpringbootEnableApplication {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(SpringbootEnableApplication.class, args);
+        User user = context.getBean(User.class);
+        System.out.println(user);
+}
+```
+
+2. 导入配置类
+
+```java
+@Import(UserConfig.class)
+@SpringBootApplication
+public class SpringbootEnableApplication {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(SpringbootEnableApplication.class, args);
+        User user = context.getBean(User.class);
+        System.out.println(user);
+}
+```
+
+```java
+@Configuration
+public class UserConfig {
+    @Bean
+    public User user() {
+        return new User();
+    }
+}
+```
+
+3. 导入`ImportSelector`实现类，一般用于加载配置文件中的类
+
+```java
+@Import(MyImportSelect.class)
+@SpringBootApplication
+public class SpringbootEnableApplication {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(SpringbootEnableApplication.class, args);
+        User user = context.getBean(User.class);
+        System.out.println(user);
+}
+```
+
+```java
+public class MyImportSelector implements ImportSelector {
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{"com.njk.domain.User"};
+    }
+}
+```
+
+4. 导入`ImportBeanDefinitionRegistrar`实现类
+
+```java
+public class MyImportBeanDefinitionRegistar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(User.class).getBeanDefinition();
+        registry.registerBeanDefinition("user", beanDefinition);
+    }
+}
+```
+
+## @EnableAutoConfiguration 注解
 
 
 

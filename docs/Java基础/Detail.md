@@ -1374,13 +1374,9 @@ class Other { // 外部其他类
 ## 基本介绍
 
 - 注解（Annotation），也被称为元数据（Metadata），用于修饰解释**包、类、方法、属性、构造器、局部变量等数据信息**
-
 - 和注释一样，**注解不影响程序逻辑**，但**注解可以被编译或运行**，相当于嵌入在代码中的补充信息
-
-- Javas中，注解的使用目的较简单，例如标记过时的功能、忽略警告等；
-
-  JavaEE中，注解占据了更重要的角色，例如用来配置应用程序的人和切面，代替JavaEE旧版中所遗留的繁冗代码和XML配置等
-
+- JavaSE中，注解的使用目的较简单，例如标记过时的功能、忽略警告等
+- JavaEE中，注解占据了更重要的角色，例如用来配置应用程序的人和切面，代替JavaEE旧版中所遗留的繁冗代码和XML配置等
 - 使用 Annotation 时要在其前面增加`@`符号，并把该 Annotation 当成一个修饰符使用
 
 ## 基本 Annotation 介绍
@@ -1398,13 +1394,19 @@ class Other { // 外部其他类
 
 JDK 的元 Annotation 用于修饰其他 Annotation，即修饰注解的注解
 
-- `@Retention`：指定注解的作用范围
-  - 三种作用范围：`SOURCE, CLASS, RUNTIME`
-- `@Target`：指定注解可以在哪些地方使用
-- `@Documented`：指定注解是否会在javadoc体现
+- `@Retention`：指定注解的作用范围，取值在`java.lang.annotation.RetentionPolicy`定义，取值为：
+  - `SOURCE`：在源文件中有效，编译过程中会被忽略
+  - `CLASS`：随源文件一起编译在`.class`文件中，运行时忽略
+  - `RUNTIME`：在运行时有效；**只有定义为`RetentionPolicy.RUNTIME`时，才能通过注解反射获取到注解**
+- `@Target`：指定注解可以在哪些地方使用，取值在`java.lang.annotation.ElementType`定义，取值为：
+  - `METHOD`：用于描述方法
+  - `PACKAGE`：用于描述包
+  - `PARAMETER`：用于描述方法变量
+  - `TYPE`：用于描述类、接口或枚举类型
+- `@Documented`：指定注解是否会在 javadoc 体现
 - `@Inherited`：子类会继承父类注解
   - 被它修饰的Annotation将具有继承性，如果某个类使用了被`@Inerited`修饰的Annotation，则其子类将自动具有该注释
-  - 实际应用中使用较少
+  - **实际应用中使用较少**
 
 # 异常 Exception
 
@@ -2558,4 +2560,4 @@ for(元素类型 元素名 : 集合名或数组名) {
 - `@Before`：表示在任意使用`@Test`注解标注的`public void`方法执行之前执行
 - `@After`：表示在任意使用`@Test`注解标注的`public void`方法执行之后执行
 - `@BeforeClass`：表示在类中的任意`public static void`方法执行之前执行
-- `@AfterClass`：表示在类中的任意`public static void`方法执行之后执行
+- `@AfterClass`：表示在类中的任意`public static void`方法执行之后执行f
