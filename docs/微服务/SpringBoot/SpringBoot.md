@@ -646,9 +646,165 @@ public class MyImportBeanDefinitionRegistar implements ImportBeanDefinitionRegis
 
 # SpringBoot 监听机制
 
+## Java 监听机制
 
+- SpringBoot 的监听机制是对 Java 提供的事件监听机制的封装
+- Java 的事件监听机制定义了以下几个角色：
+  1. 事件：Event，继承`java.util.EventObject`类的对象
+  2. 事件源：Source，任意对象`Object`
+  3. 监听器：Listener，实现`java.util.EventListener`接口的对象
 
+## SpringBoot 监听机制
 
+- SpringBoot 在项目启动时，会对几个监听器进行回调，可以通过实现这些监听器接口，在项目启动时完成相应操作
+  - 如：缓存预热（在初次启动 redis 时，将数据库中的一些数据预先加载到 redis 缓存中）
+- `ApplicationContextInitializer`，`SpringApplicationRunListener`：需要在`META-INF/spring.factories`文件中配置
 
+```properties
+org.springframework.context.ApplicationContextInitializer=\
+  com.njk.springbootlistener.listener.MyApplicationContextInitializer
+org.springframework.boot.SpringApplicationRunListener=\
+  com.njk.springbootlistener.listener.MySpringApplicationRunListener
+```
 
+- `CommandLineRunner`，`ApplicationRunner`：项目启动时自动加载，无需配置
+
+# SpringBoot 启动流程分析
+
+![SpringBoot启动流程](pics/SpringBootStartProcess.png)
+
+# SpringBoot 监控
+
+## 基本概念
+
+- SpringBoot 自带监控功能`Actuator`，可帮助实现对程序内部运行情况监控，比如：
+  - 监控状况
+  - Bean 加载情况
+  - 配置属性
+  - 日志信息
+
+## 使用步骤
+
+1. 导入依赖坐标
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+2. 浏览器访问`http://localhost:8080/actuator`
+
+## 监控路径
+
+| 路径              | 描述                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| `/beans`          | 描述应用程序上下文里全部的 Bean，以及它们的关系              |
+| `/env`            | 获取全部环境属性                                             |
+| `/env/{name}`     | 根据名称获取特定的环境属性值                                 |
+| `/health`         | 报告应用程序的健康指标，这些值由`HealthIndicator`的实现类提供 |
+| `/info`           | 获取应用程序的定制信息，这些信息由`info`打头的属性提供       |
+| `/mappings`       | 描述全部的 URI 路径，以及它们和控制器（包含Actuator 端点）的映射关系 |
+| `/metrics`        | 报告各种应用程序度量信息，比如内存用量和 HTTP 请求计数       |
+| `/metrics/{name}` | 报告指定名称的应用程序度量值                                 |
+| `/trace`          | 提供基本的 HTTP 请求跟踪信息（时间戳、HTTP 头等）            |
+
+- 可在`application.properties`中配置相关监控信息，如：
+- 开启健康检查的完整信息
+
+```properties
+# 开启健康检查的完整信息
+management.endpoint.health.show-details=always
+```
+
+- 将所有的监控 endpoint 暴露出来
+
+```properties
+# 将所有的监控endpoint暴露出来
+management.endpoints.web.exposure.include=*
+```
+
+- **IDEA 也提供了常见路径的监控入口：run 窗口的 Endpoints 分栏**
+
+## SpringBoot Admin
+
+### 基本概念
+
+- SpringBoot Admin是一个开源社区项目，用于管理和监控SpringBoot 应用程序
+- **SpringBoot Admin 有两个角色，客户端（Client）和服务端（Server）**
+- **应用程序作为 SpringBoot Admin Client 向 SpringBoot Admin Server 注册**
+- **SpringBoot Admin Server 的 UI 界面展示了 SpringBoot Admin Client 的 Actuator Endpoint 上的一些监控信息**
+
+### 使用步骤
+
+- `admin-server`
+  1. 创建`admin-server`模块
+  2. 导入依赖坐标`admin-starter-server`
+  3. 在引导类上启用监控功能`@EnableAdminServer`
+  
+- `admin-client`
+  1. 创建`admin-client`模块
+  2. 导入依赖坐标`admin-starter-client`
+  3. 配置相关信息：`server`地址等 
+  4. 启动`server`和`client`服务，访问`server`地址
+
+```properties
+# admin-client配置相关信息
+# 执行admin.server地址
+spring.boot.admin.client.url=http://localhost:9000
+# 开启健康检查的完整信息
+management.endpoint.health.show-details=always
+# 将所有的监控endpoint暴露出来
+management.endpoints.web.exposure.include=*
+```
+
+# SpringBoot 项目部署
+
+- SpringBoot 项目开发完毕后，支持两种方式部署到服务器
+  - jar 包（官方推荐）
+  - war 包
+
+## jar 包部署
+
+1. 打 jar 包：maven - Lifecycle - package
+2. powershell 命令行运行 jar 包：`java -jar xxx.jar`
+
+## war 包部署
+
+1. `pom.xml`更改打包方式
+
+```xml
+<packaging>war</packaging>
+```
+
+2. 引导类继承`SpringBootServletInitializer`，并重写`configure`方法
+
+```java
+@SpringBootApplication
+public class SpringbootDeployApplication extends SpringBootServletInitializer {
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootDeployApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(SpringbootDeployApplication.class);
+    }
+}
+```
+
+3. 打 war 包：maven - Lifecycle - package
+4. 将 war 包放在外置 web 服务器（如 tomcat 的`webapps`文件夹）下，启动外置 web 服务器
+
+## 更改打包的文件名
+
+- `pom.xml`中的`<build>`标签内添加`<finalName>`属性
+
+```xml
+<build>
+    <!--更改打包的文件名为springboot-->
+	<finalName>springboot</finalName>
+</build>
+```
 
