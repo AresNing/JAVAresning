@@ -224,7 +224,7 @@ public class Controller {
 
 ```java
 @Component
-@ConfigurationProperties(prefix = "person") // prefix 明确配置文件的主属性
+@ConfigurationProperties(prefix = "person") // prefix 明确配置文件的主属性, 即properties文件里的person主属性
 public class Person {
     private String name;
     private int age;
@@ -631,7 +631,20 @@ public class MyImportBeanDefinitionRegistar implements ImportBeanDefinitionRegis
 
 ## @EnableAutoConfiguration 注解
 
+- `@EnableAutoConfiguration`注解内部使用`@Import(AutoConfigurationImportSelector.class)`来加载配置类
+- 配置文件位置：`.../META-INF/spring.factories`，该配置文件中定义了大量的配置类，当 SpringBoot 应用启动时，会自动加载这些配置类，初始化 Bean
+- 并不是所有的 Bean 都会被初始化，在配置类中使用`Condition`来加载满足条件的 Bean
 
+## 自定义 starter
+
+> 自定义 redis-starter，要求当导入 redis 坐标时，SpringBoot 自动创建 Jedis 的 Bean
+
+1. 创建`redis-spring-boot-autoconfigure`模块
+2. 创建`redis-spring-boot-starter`模块，并依赖`redis-spring-boot-autoconfigure`模块
+3. 在`redis-spring-boot-autoconfigure`模块中初始化 Jedis 的 Bean，并定义`META-INF/spring.properties`文件
+4. 在测试模块中引入自定义的`redis-starter`依赖
+
+# SpringBoot 监听机制
 
 
 
