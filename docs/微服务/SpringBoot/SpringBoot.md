@@ -778,7 +778,7 @@ management.endpoints.web.exposure.include=*
 <packaging>war</packaging>
 ```
 
-2. 引导类继承`SpringBootServletInitializer`，并重写`configure`方法
+2. 引导类继承`SpringBootServletInitializer`，并重写`configure`方法，更改 SpringBoot 的执行入口
 
 ```java
 @SpringBootApplication

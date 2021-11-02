@@ -40,6 +40,8 @@
     - [SpringBoot](微服务/SpringBoot/SpringBoot.md)
   - SpringCloud
     - [SpringCloud](微服务/SpringCloud/SpringCloud.md)
+
+- **分布式框架**
   
 - **数据结构与算法**
   - 数据结构
@@ -75,6 +77,9 @@
 
 - **Code Practice**
   - [Input & Output in OJ](CodePractice/OJ_Input_Output.md)
+
+- **云服务器**
+  - [阿里云服务器搭建](云服务器/阿里云服务器搭建.md)
 
 - **Misc.**
   - [Banner](Misc/Banner.md)
