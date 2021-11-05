@@ -887,3 +887,30 @@ public interface RoleMapper {
 ```
 
 - 测试代码
+
+## 补充
+
+### @Param
+
+- `@Param`：作用是给参数命名，参数命名后能根据名字得到参数值，正确地将参数传入 SQL 语句中
+- 不使用`@Param`注解来声明参数时
+  - 必须使用使用`#{}`方式；如果使用`${}`的方式，会报错
+  - 参数只能有一个，并且是 Javabean；在 SQL 语句里可以引用 JavaBean的属性，而且只能引用 JavaBean 的属性
+
+```java
+public interface UserMapper {
+    @Select("select * from user where id=#{id}")
+    public User findById(int id);
+}
+```
+
+- 使用`@Param`注解来声明参数时
+  - 使用`#{}`或`${}`的方式都可以
+
+```java
+public interface UserMapper {
+    @Select("select * from user where id=#{id}")
+    public User findById(@Param("id") int id);
+}
+```
+

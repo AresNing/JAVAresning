@@ -173,13 +173,20 @@ public class UserController {
 - 作用：用于建立请求 URL 和处理请求方法之间的对应关系
 - 位置：
   - **类上**，请求URL 的第一级访问目录。此处不写的话，就相当于应用的根目录
-  - **方法上**，请求 URL 的第二级访问目录，与类上的使用`@ReqquestMapping`标注的一级目录一起组成访问虚拟路径
+  - **方法上**，请求 URL 的第二级访问目录，与类上的使用`@RequestMapping`标注的一级目录一起组成访问虚拟路径
 - 属性：
   - `value`：用于指定请求的 URL，它和`path`属性的作用是一样的
-  -  `method`：用于指定请求的方式
+  -  `method`：用于指定请求的方式（如：`GET`、`POST`）
   - `params`：用于指定限制请求参数的条件，要求请求参数的`key`和`value`必须和配置的一模一样，例如：
     - `params = {"accountName"}`，表示请求参数必须有`accountName`
     - `params = {"money!=100"}`，表示请求参数中`money`不能是`100`
+
+### @GetMapping 和 @PostMapping
+
+- `@GetMapping`用于将 HTTP GET 请求映射到特定处理程序的方法注解
+- `@GetMapping`是一个组合注解，是`@RequestMapping(method = RequestMethod.GET)`的缩写
+- `@PostMapping`用于将 HTTP POST 请求映射到特定处理程序的方法注解
+- `@PostMapping`是一个组合注解，是`@RequestMapping(method = RequestMethod.POST)`的缩写
 
 ### mvc 命名空间引入
 
