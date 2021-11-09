@@ -1031,29 +1031,315 @@ feign:
 
 # Gateway 统一网关
 
+![Gateway统一网关](pics/image-20211109135408222.png)
 
+## 基本概念
 
+- 基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等响应式编程和事件流技术开发的网关，它旨在为微服务架构提供一种简单有效的统一的 API 路由管理方式
+- Gateway 网关是所有微服务的统一入口，网关的**核心功能特性**：
+  - 服务路由、负载均衡
+  - 身份认证和权限校验
+  - 请求限流
+- SpringCloud 中网关的实现有两种：Gateway 和 Zuul
+  - Zuul 是基于 Servlet 的实现，属于阻塞式编程
+  - SpringCloudGateway 则是基于 Spring5 中提供的 WebFlux，属于响应式编程的实现，具备更好的性能
 
+## Gateway 快速入门
 
+1. 创建 SpringBoot 工程 gateway，引入网关依赖
+2. 编写启动类
+3. 编写基础配置和路由规则
+4. 启动网关服务进行测试
 
+![网关路由流程](pics/image-20211109140019747.png)
 
+### 创建 gateway 服务
 
+- 创建服务，引入依赖
 
+```xml
+<!--网关-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-gateway</artifactId>
+</dependency>
+<!--nacos服务发现依赖-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
 
+### 编写启动类
 
+```java
+@SpringBootApplication
+public class GatewayApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(GatewayApplication.class, args);
+	}
+}
+```
 
+### 编写基础配置和路由规则
 
+- 创建`application.yml`文件
 
+```yaml
+server:
+  port: 10010 # 网关端口
+spring:
+  application:
+    name: gateway # 服务名称
+  cloud:
+    nacos:
+      server-addr: localhost:8848 # nacos地址
+    gateway:
+      routes: # 网关路由配置
+        - id: user-service # 路由id，自定义，只要唯一即可
+          # uri: http://127.0.0.1:8081 # 路由的目标地址 http就是固定地址
+          uri: lb://userservice # 路由的目标地址 lb就是负载均衡，后面跟服务名称
+          predicates: # 路由断言，也就是判断请求是否符合路由规则的条件
+            - Path=/user/** # 这个是按照路径匹配，只要以/user/开头就符合要求
+```
 
+- 路由配置包括：
+  1. 路由id：路由的唯一标示
+  2. 路由目标（uri）：路由的目标地址，http 代表固定地址，lb 代表根据服务名负载均衡
+  3. 路由断言（predicates）：判断路由的规则，
+  4. 路由过滤器（filters）：对请求或响应做处理
 
+### 重启测试
 
+- 重启网关，访问http://localhost:10010/user/1；符合`/user/**`规则，请求转发到uri：http://userservice/user/1
 
+## 断言工厂
 
+- 在配置文件中写的断言规则只是字符串，这些字符串会被 Predicate Factory 读取并处理，转变为路由判断的条件
+  - 例如`Path=/user/**`是按照路径匹配，这个规则是由
 
+    `org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory`类来处理
 
+- Spring 提供了11种基本的 [Predicate 工厂](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#gateway-request-predicates-factories)
+
+| **名称**   | **说明**                       | **示例**                                                     |
+| ---------- | ------------------------------ | ------------------------------------------------------------ |
+| After      | 是某个时间点后的请求           | -  After=2037-01-20T17:42:47.789-07:00[America/Denver]       |
+| Before     | 是某个时间点之前的请求         | -  Before=2031-04-13T15:14:47.433+08:00[Asia/Shanghai]       |
+| Between    | 是某两个时间点之前的请求       | -  Between=2037-01-20T17:42:47.789-07:00[America/Denver],  2037-01-21T17:42:47.789-07:00[America/Denver] |
+| Cookie     | 请求必须包含某些cookie         | - Cookie=chocolate, ch.p                                     |
+| Header     | 请求必须包含某些header         | - Header=X-Request-Id, \d+                                   |
+| Host       | 请求必须是访问某个host（域名） | -  Host=**.somehost.org,**.anotherhost.org                   |
+| Method     | 请求方式必须是指定方式         | - Method=GET,POST                                            |
+| Path       | 请求路径必须符合指定规则       | - Path=/red/{segment},/blue/**                               |
+| Query      | 请求参数必须包含指定参数       | - Query=name, Jack或者-  Query=name                          |
+| RemoteAddr | 请求者的 ip必须是指定范围      | - RemoteAddr=192.168.1.1/24                                  |
+| Weight     | 权重处理                       |                                                              |
+
+## 过滤器工厂
+
+- GatewayFilter 是网关中提供的一种过滤器，可以对进入网关的请求和微服务返回的响应做处理，比如添加请求头
+
+![过滤器工厂](pics/image-20211109141350363.png)
+
+### 路由过滤器种类
+
+- Spring 提供了31种不同的[路由过滤器工厂](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#gatewayfilter-factories)，如：
+
+| **名称**             | **说明**                     |
+| -------------------- | ---------------------------- |
+| AddRequestHeader     | 给当前请求添加一个请求头     |
+| RemoveRequestHeader  | 移除请求中的一个请求头       |
+| AddResponseHeader    | 给响应结果中添加一个响应头   |
+| RemoveResponseHeader | 从响应结果中移除有一个响应头 |
+| RequestRateLimiter   | 限制请求的流量               |
+
+### 请求头过滤器
+
+> 以 AddRequestHeader 为例，给所有进入userservice的请求添加一个请求头：Truth=AresNing
+
+- 只需要修改 gateway 服务的`application.yml`文件，添加路由过滤即可
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: user-service 
+        uri: lb://userservice 
+        predicates: 
+        - Path=/user/** 
+        filters: # 过滤器
+        - AddRequestHeader=Truth, AresNing # 添加请求头
+        # 当前过滤器写在userservice路由下，因此仅仅对访问userservice的请求有效
+```
+
+### 默认路由过滤器
+
+- 要对所有的路由都生效，则可以将过滤器工厂写到`default`下
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: user-service 
+        uri: lb://userservice 
+        predicates: 
+        - Path=/user/**
+      default-filters: # 默认过滤项
+      - AddRequestHeader=Truth, AresNing # 添加请求头 
+```
+
+> 补充：注解@RequestHeader：自动获取指定的请求头的值
+
+## 全局过滤器
+
+### 全局过滤器作用
+
+- 全局过滤器（GlobalFilter）的作用也是处理一切进入网关的请求和微服务响应，与 GatewayFilter 的作用一样
+- 区别在于 GatewayFilter 通过配置定义，处理逻辑是固定的；而 **GlobalFilter 的逻辑需要自己写代码实现**
+- GlobalFilter 定义方式是**实现 GlobalFilter** 接口
+
+```java
+public interface GlobalFilter {
+    /**
+     *  处理当前请求，有必要的话通过{@link GatewayFilterChain}将请求交给下一个过滤器处理
+     *
+     * @param exchange 请求上下文，里面可以获取Request、Response等信息
+     * @param chain 用来把请求委托给下一个过滤器 
+     * @return {@code Mono<Void>} 返回标示当前过滤器业务结束
+     */
+    Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
+}
+```
+
+### 自定义全局过滤器
+
+> 定义全局过滤器，拦截请求，判断请求的参数是否满足下面条件：
+>
+> - 参数中是否有 authorization
+>
+> - authorization 参数值是否为 admin
+>
+> 如果同时满足则放行，否则拦截
+
+- 在 gateway 中自定义一个过滤器类，实现`GlobalFilter`接口，添加`@Order`注解
+  - **添加`@Order`注解或实现`Ordered`接口（定义顺序，数字越小，优先级越高）**
+
+```java
+@Component
+//@Order(-1)
+public class AuthorizeFilter implements GlobalFilter, Ordered {
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 获取请求参数
+        MultiValueMap<String, String> params = exchange.getRequest().getQueryParams();
+        // 获取 authorization 参数
+        String auth = params.getFirst("authorization");
+        // 校验
+        if ("admin".equals(auth)) {
+            // 放行
+            return chain.filter(exchange);
+        }
+        // 拦截
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        // 结束处理
+        return exchange.getResponse().setComplete();
+    }
+
+    @Override
+    public int getOrder() {
+        return -1;
+    }
+}
+```
+
+### 过滤器执行顺序
+
+- 请求进入网关会碰到三类过滤器：当前路由的过滤器、DefaultFilter、GlobalFilter
+- 请求路由后，会将当前路由过滤器和 DefaultFilter、GlobalFilter，合并到一个过滤器链（集合）中，排序后依次执行每个过滤器
+
+![过滤器执行顺序](pics/image-20211109143351074.png)
+
+- **排序规则**
+  - 每一个过滤器都必须指定一个`int`类型的 order 值，**order 值越小，优先级越高，执行顺序越靠前**。
+  - GlobalFilter 通过实现`Ordered`接口，或者添加`@Order`注解来指定 order 值
+  - 路由过滤器和 DefaultFilter 的 order 由 Spring 指定，**默认是按照声明顺序从1递增**
+  - **当过滤器的 order 值一样时，会按照 DefaultFilter > 路由过滤器 > GlobalFilter 的顺序执行**
+
+> 可以参考下面几个类的源码来查看：
+>
+> `org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator#getFilters()`方法是先加载 DefaultFilter，然后再加载某个 route 的filters，然后合并
+>
+> `org.springframework.cloud.gateway.handler.FilteringWebHandler#handle()`方法会加载全局过滤器，与前面的过滤器合并后根据 order 排序，组织过滤器链
+
+## 跨域问题
+
+- 跨域：域名不一致就是跨域，主要包括：
+  - 域名不同： www.taobao.com 和 www.taobao.org 和 www.jd.com 和 miaosha.jd.com
+  - 域名相同，端口不同：localhost:8080 和 localhost8081
+- **跨域问题：浏览器禁止请求的发起者与服务端发生跨域 ajax 请求，请求被浏览器拦截的问题**
+- 解决方案：CORS，[跨域资源共享 CORS 详解 - 阮一峰的网络日志](https://www.ruanyifeng.com/blog/2016/04/cors.html)
+
+### CORS 方案
+
+- 在 gateway 服务的`application.yml`文件中，添加下面的配置
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      # ...
+      globalcors: # 全局的跨域处理
+        add-to-simple-url-handler-mapping: true # 解决options请求被拦截问题
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: # 允许哪些网站的跨域请求 
+              - "http://localhost:8090"
+            allowedMethods: # 允许的跨域ajax的请求方式
+              - "GET"
+              - "POST"
+              - "DELETE"
+              - "PUT"
+              - "OPTIONS"
+            allowedHeaders: "*" # 允许在请求中携带的头信息
+            allowCredentials: true # 是否允许携带cookie
+            maxAge: 360000 # 这次跨域检测的有效期
+```
+
+- CORS 跨域要配置的参数包括哪几个？
+  - 允许哪些域名跨域？
+  - 允许哪些请求头？
+  - 允许哪些请求方式？
+  - 是否允许使用cookie？
+  - 有效期是多久？
+
+## 限流过滤器
+
+- 限流作用：限流是保护服务器，避免因过多请求而导致服务器过载甚至宕机
+
+- 限流算法
+
+  - 计数器算法（又称为窗口计数器算法、滑动窗口计数器算法）
+    1. 将时间划分为多个窗口；
+    2. 在每个窗口内每有一次请求就将计数器加一，当时间到达下一个窗口时，计数器重置；
+    3. 如果计数器超过了限制数量，则本窗口内所有的请求都被丢弃
+
+  ![窗口计数器算法](pics/image-20211109150704794.png)
+
+  - 漏桶算法（Leaky Bucket）
+    1. 将每个请求视作“水滴”放入“漏桶”进行存储
+    2. “漏桶”以固定速率向外“漏出”请求来执行，如果“漏桶”空了就停止“漏水”
+    3. 如果“漏桶”满了则多余的“水滴”会被直接丢弃（多余请求等待抛弃）
+
+  ![漏桶算法](pics/image-20211109151057102.png)
+
+  - 令牌桶算法（Token Bucket）
+    1. 以固定的速率生成令牌，存入令牌桶中，如果令牌桶满了以后，多余令牌丢弃
+    2. 请求进入后，必须先尝试从桶中获取令牌，获取到令牌后才可以被处理
+    3. 如果令牌桶中没有令牌，则请求等待或丢弃
   
-
+  ![image-20211109151210823](pics/image-20211109151210823.png)
   
-
-
-
+    
