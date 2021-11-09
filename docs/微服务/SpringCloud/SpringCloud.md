@@ -329,6 +329,8 @@ public class OrderService {
 
 # Ribbon 负载均衡
 
+> [负载均衡详解](https://www.jianshu.com/p/215b5575107c)
+
 ## 负载均衡原理
 
 - SpringCloud 底层利用了一个名为`Ribbon`的组件，来实现负载均衡功能的
@@ -432,10 +434,12 @@ ribbon:
   eager-load:
     enabled: true # 开启饥饿加载
     clients: # 指定对userservice这个服务饥饿加载
-        - userservice # 集合
+      - userservice # 集合
 ```
 
 # Nacos 注册中心
+
+![Nacos注册中心](pics/image-20211105162520643.png)
 
 ## 基本概念
 
@@ -445,18 +449,587 @@ ribbon:
   1. 依赖不同
   2. 服务地址不同
 
+## Nacos 启动与访问
+
+1. 进入 Nacos 安装目录下的`bin`目录，执行命令即可（单机版启动）
+
+```bat
+startup.cmd -m standalone
+```
+
+2. 浏览器访问http://127.0.0.1:8848/nacos，默认账号和密码都是`nacos`
+
 ## 服务注册到 Nacos
 
+### 引入依赖
 
+- 在父工程中引入 SpringCloudAlibaba 的管理依赖
+
+```xml
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+    <version>2.2.6.RELEASE</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
+
+- 在`user-service`和`order-service`中引入 nacos 的客户端依赖
+
+```xml
+<!--nacos客户端依赖-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+### 配置 Nacos 地址
+
+- 在`user-service`和`order-service`的`application.yml`中添加 nacos 地址
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 # nacos服务地址
+```
+
+### 登录 Nacos 管理界面
+
+- 浏览器访问http://localhost:8848
 
 ## 服务分级存储模型
 
+![服务分级存储模型](pics/image-20211105155926154.png)
+
+### 概念
+
+- **含义：服务 - 集群 - 实例**
+- **一个服务可以有多个实例**，假设这些实例分布在不同区域的机房，Nacos 将同一机房 / 区域内的实例，划分为一个**集群**，即一个服务可以包含多个集群，每个集群下可以有多个实例，**形成分级模型**
+- 微服务互相访问时，应该**尽可能访问同集群实例**，因为本地访问速度更快；当本集群内不可用时，才访问其它集群
+
+### 给服务配置集群
+
+- 修改`user-service`的`application.yml`，添加集群配置（`spring.cloud.nacos.discovery.cluster-name`属性）
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        cluster-name: HZ # 集群名称:HZ
+```
+
+- 在 Nacos 控制台查看集群变化
+
+### 同集群优先的负载均衡
+
+- 默认的`ZoneAvoidanceRule`不能实现根据同集群优先来实现负载均衡
+- Nacos 中提供了一个`NacosRule`的实现
+  - **优先从同集群中挑选实例**
+  - 本地集群找不到提供者，**才去其它集群寻找**，并且会**报警告**
+  - 确定了可用实例列表后，再采用**随机负载均衡**挑选实例
+
+1. 给`order-service`配置集群信息
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        cluster-name: HZ # 集群名称:HZ
+```
+
+2. 修改`order-service`负载均衡规则
+
+```yaml
+userservice:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.alibaba.cloud.nacos.ribbon.NacosRule # NacosRule 负载均衡规则
+```
+
 ## 权重配置
+
+- Nacos 提供了权重配置来控制访问频率，权重越大则访问频率越高
+
+1. 在 Nacos 控制台可以设置实例的权重值（0~1之间），选中实例后面的编辑按钮
+2. 在弹出的编辑窗口，修改权重
+   - **如果权重修改为0，则该实例永远不会被访问**
 
 ## 环境隔离
 
+![环境隔离](pics/image-20211105161448213.png)
+
+### 概念
+
+- **Nacos 提供了 namespace 来实现环境隔离功能，基于环境的隔离，如开发环境、测试环境、生产环境等**
+- Nacos 中可以有多个 namespace
+- namespace 下可以有 group、service 等
+- **不同 namespace 之间相互隔离，不同 namespace 的服务互相不可见**
+
+### 创建 namespace
+
+- 默认情况下，所有 service、data、group 都在同一个 namespace，名为`public`
+
+1. 在 Nacos 控制台创建 namespace
+2. 填写一个新的命名空间信息，每个 namespace 都有唯一 ID
+
+### 给微服务配置 namespace
+
+- **给微服务配置 namespace 只能通过修改配置来实现**
+- **服务设置 namespace 时要写 ID** 而不是名称
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 # nacos服务地址
+        cluster-name: HZ # HZ集群
+        namespace: cf0f37ef-3733-46d7-a6a1-29317d6cf4d1 # 命名空间，填ID
+```
+
 ## Nacos 与 Eureka 的对比
 
+![Nacos注册中心](pics/image-20211105162520643.png)
+
+### Nacos 的服务实例类型
+
+- **临时实例**：如果实例宕机超过一定时间，会从服务列表剔除，**默认的类型**
+- **非临时实例 / 永久实例**：如果实例宕机，不会从服务列表剔除
+- **配置一个服务实例为永久实例：**
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        ephemeral: false # 设置为非临时实例
+```
+
+### 共同点
+
+- 都支持**服务注册**和**服务拉取**
+- 都支持**服务提供者心跳方式做健康检测**
+
+### 区别
+
+- Nacos 支持服务端主动检测提供者状态：临时实例采用心跳模式，非临时实例采用主动检测模式
+- 临时实例心跳不正常会被剔除，非临时实例则不会被剔除
+- Nacos 支持服务列表变更的消息推送模式，服务列表更新更加及时
+- Nacos 集群默认采用 AP 方式，当集群中存在非临时实例时，采用 CP 方式；Eureka 采用 AP 方式（[CAP(AP模式/CP模式)](https://www.pianshen.com/article/2293991131/)）
+
+# Nacos 配置管理
+
+## 统一配置管理
+
+![nacos统一配置管理](pics/image-20211105224729251.png)
+
+- 当微服务部署的实例越来越多，逐个修改微服务配置变得效率低下，因此需要一种统一配置管理方案，可以集中管理所有实例的配置
+- **Nacos 一方面可以将配置集中管理，另一方可以在配置变更时，及时通知微服务，实现配置的热更新**
+- **注意：项目的核心配置、需要热更新的配置才有放到 Nacos 管理的必要；基本不会变更的一些配置还是保存在微服务本地比较好**
+
+### 在 Nacos 中添加配置文件
+
+![在Nacos中添加配置文件](pics/image-20211105224920854.png)
+
+- 弹出表单中填写配置信息
+  - Data ID：配置文件的 ID，`[服务名称]-[profile].[后缀名]`
+  - Group：分组，默认接口
+  - 配置格式：`yaml`或`properties`
+
+### 从微服务拉取配置
+
+![从微服务拉取配置](pics/image-20211105225241282.png)
+
+1. 引入`nacos-config`依赖
+
+```xml
+<!--nacos配置管理依赖-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+</dependency>
+```
+
+2. 在`resources`目录下添加`bootstrap.yml`文件，该文件是引导文件，优先级高于`application.yml`
+
+```yaml
+spring:
+  application:
+    name: userservice # 服务名称
+  profiles:
+    active: dev # 开发环境，这里是dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 # nacos地址
+      config:
+        file-extension: yaml # 文件后缀名
+```
+
+- SpringCloud 会根据`spring.cloud.nacos.server-addr`获取 nacos 地址，再根据
+`${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}`作为文件 ID 来读取配置
+
+3. 在`user-service`中的`UserController`添加相应的业务逻辑，读取 nacos 配置（**利用`@Value("${xxx.xxx}")`注解来注入 nacos 中的配置属性**）
+
+## 配置热更新
+
+### 方式一
+
+- 在`@Value`注入的变量所在类上添加注解`@RefreshScope`
+
+```java
+@Slf4j
+@RestController
+@RequestMapping("/user")
+@RefreshScope
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    // 注入nacos中的配置属性
+    @Value("${pattern.dateformat}")
+    private String dateformat;
+    ...
+}
+```
+
+### 方式二：推荐使用
+
+- 使用`@ConfigurationProperties`注解
+- 在`user-service`服务中，添加一个类，读取指定属性
+
+```java
+@Component
+@Data
+@ConfigurationProperties(prefix = "pattern")
+public class PatternProperties {
+    private String dateFormat;
+}
+```
+
+- 在`UserController`中使用这个类代替`@Value`
+
+```java
+@Slf4j
+@RestController
+@RequestMapping("/user")
+@RefreshScope
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    // 注入nacos中的配置属性的类
+    @Autowired
+    private PatternProperties patternProperties;
+    
+    @GetMapping("now")
+    public String now(){
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(patternProperties.getDateformat()));
+    }
+}
+```
+
+## 配置共享
+
+### 多环境配置共享
+
+- 微服务启动时，会去 Nacos 读取多个配置文件
+  - `[spring.application.name]-[spring.profiles.active].yaml`：环境配置，例如：`userservice-dev.yaml`
+  - `[spring.application.name].yaml`：不包含环境，因此可以被多个环境共享，例如：`userservice.yaml`
+
+- 优先级：`服务名-profile.yaml` > `服务名称.yaml` > 本地配置
+
+![多环境配置共享](pics/image-20211108131718394.png)
+
+### 多服务共享配置
+
+- 方式一：`shared-configs`
+
+```yaml
+spring:
+  application:
+    name: userservice # 服务名称
+  profiles:
+    active: dev # 环境
+  cloud:
+    nacos:
+      server-addr: localhost:8848 # Nacos地址
+      config:
+        file-extension: yaml # 文件后缀名
+        shared-configs: # 多个微服务间共享的配置列表
+          - dataId: common.yaml # 要共享的配置文件id
+```
+
+- 方式二：`extension-configs`
+
+```yaml
+spring:
+  application:
+    name: userservice # 服务名称
+  profiles:
+    active: dev # 环境
+  cloud:
+    nacos:
+      server-addr: localhost:8848 # Nacos地址
+      config:
+        file-extension: yaml # 文件后缀名
+        extension-configs: # 多个微服务间共享的配置列表
+          - dataId: common.yaml # 要共享的配置文件id
+```
+
+- 优先级：`服务名-profile.yaml` > `服务名称.yaml` > `extension-config` > `shared-config` > 本地配置
+
+## Nacos 集群搭建
+
+- **Nacos 生产环境下一定要部署为集群状态**，部署方式参考：[Nacos集群搭建](微服务/SpringCloud/Nacos集群搭建.md)
+
+# Feign 远程调用
+
+## 基本概念
+
+> Feign makes writing java http clients easier.
+>
+> Feign is a Java to HTTP client binder inspired by [Retrofit](https://github.com/square/retrofit), [JAXRS-2.0](https://jax-rs-spec.java.net/nonav/2.0/apidocs/index.html), and [WebSocket](http://www.oracle.com/technetwork/articles/java/jsr356-1937161.html). Feign's first goal was reducing the complexity of binding [Denominator](https://github.com/Netflix/Denominator) uniformly to HTTP APIs regardless of [ReSTfulness](http://www.slideshare.net/adrianfcole/99problems).
+
+- Feign 是一个声明式的 http 客户端，官方地址：https://github.com/OpenFeign/feign
+- 作用：优雅地实现 http 请求的发送，方便维护参数复杂的 URL，代码可读性好
+
+## Feign 替代 RestTemplate
+
+### 引入依赖
+
+- 在`order-service`服务引入`feign`依赖
+
+```xml
+<!--feign依赖-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+### 添加注解
+
+- 在`order-service`的启动类添加注解开启 Feign 的功能
+
+```java
+@EnableFeignClients
+@MapperScan("cn.itcast.order.mapper")
+@SpringBootApplication
+public class OrderApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderApplication.class, args);
+    }
+}
+```
+
+### 编写 Feign 的客户端
+
+- 在`order-service`中新建一个接口
+
+```java
+@FeignClient("userservice")
+public interface UserClient {
+    @GetMapping("/user/{id}")
+    User findById(@PathVariable("id") Long id);
+}
+```
+
+- 客户端主要是基于 SpringMVC 的注解来声明远程调用的信息，比如：
+  - 服务名称：`userservice`
+  - 请求方式：`GET`
+  - 请求路径：`/user/{id}`
+  - 请求参数：`Long id`
+  - 返回值类型：`User`
+
+### 用 Feign 客户端替代 RestTemplate
+
+```java
+@Service
+public class OrderService {
+
+    @Autowired
+    private OrderMapper orderMapper;
+    @Autowired
+    private UserClient userClient;
+    /*@Autowired
+    private RestTemplate restTemplate;*/
+
+    public Order queryOrderById(Long orderId) {
+        // 1.查询订单
+        Order order = orderMapper.findById(orderId);
+        // 2. 查询用户
+        User user = userClient.findById(orderId);
+        /*String url = "http://userservice/user/" + order.getUserId();
+        User user = restTemplate.getForObject(url, User.class);*/
+        // 3. 封装 user 信息
+        order.setUser(user);
+        // 4.返回
+        return order;
+    }
+}
+```
+
+## 自定义 Feign 配置
+
+- Feign 运行自定义配置来覆盖默认配置
+- 一般情况下，默认值就能满足使用；如果要自定义时，只需要创建自定义的`@Bean`覆盖默认 Bean 即可
+
+| 类型                   | 作用             | 说明                                                        |
+| ---------------------- | ---------------- | ----------------------------------------------------------- |
+| **feign.Logger.Level** | 修改日志级别     | 包含四种不同的级别：`NONE`、`BASIC`、`HEADERS`、`FULL`      |
+| feign.codec.Decoder    | 响应结果的解析器 | http 远程调用的结果做解析，例如解析 json 字符串为 java 对象 |
+| feign.codec.Encoder    | 请求参数编码     | 将请求参数编码，便于通过 http 请求发送                      |
+| feign.Contract         | 支持的注解格式   | 默认是 SpringMVC 的注解                                     |
+| feign.Retryer          | 失败重试机制     | 请求失败的重试机制，默认是没有，不过会使用 Ribbon 的重试    |
+
+- 日志的级别分为四种：
+
+  - NONE：不记录任何日志信息，这是默认值
+  - BASIC：仅记录请求的方法，URL 以及响应状态码和执行时间
+  - HEADERS：在 BASIC 的基础上，额外记录了请求和响应的头信息
+  - FULL：记录所有请求和响应的明细，包括头信息、请求体、元数据
+
+  
+
+### 配置文件方式
+
+- 全局生效
+
+```yaml
+feign:  
+  client:
+    config: 
+      default: # 这里用default就是全局配置，如果是写服务名称，则是针对某个微服务的配置
+        loggerLevel: FULL #  日志级别 
+```
+
+- 局部生效
+
+```yaml
+feign:  
+  client:
+    config: 
+      userservice: # 针对某个微服务的配置
+        loggerLevel: FULL #  日志级别 
+```
+
+### Java 代码方式
+
+- 先声明一个类，然后声明一个`Logger.Level`的对象
+
+```java
+public class DefaultFeignConfiguration  {
+    @Bean
+    public Logger.Level feignLogLevel(){
+        return Logger.Level.BASIC; // 日志级别为BASIC
+    }
+}
+```
+
+- 如果要**全局生效**，将其放到启动类的`@EnableFeignClients`注解中
+
+```java
+@EnableFeignClients(defaultConfiguration = DefaultFeignConfiguration .class) 
+```
+
+- 如果要**局部生效**，将其放到对应的`@FeignClient`注解中
+
+```java
+@FeignClient(value = "userservice", configuration = DefaultFeignConfiguration .class) 
+```
+
+## 使用优化
+
+1. 日志级别，最好用 basic 或 none，如果是测试场景，使用 full（因为记录日志会消耗一定的性能）
+2. 连接池配置：使用`HttpClient`或`OKHttp`代替`URLConnection`
+
+### Feign 底层的客户端实现
+
+- `URLConnection`：默认实现，不支持连接池
+- `Apache HttpClient`：支持连接池
+- `OKHttp`：支持连接池
+
+### Feign 添加 HttpClient
+
+- 引入依赖
+
+```xml
+<!--httpClient的依赖 -->
+<dependency>
+    <groupId>io.github.openfeign</groupId>
+    <artifactId>feign-httpclient</artifactId>
+</dependency>
+```
+
+- 配置连接池
+
+```yaml
+feign:
+  client:
+    config:
+      default: # default全局的配置
+        loggerLevel: BASIC # 日志级别，BASIC就是基本的请求和响应信息
+  httpclient:
+    enabled: true # 开启feign对HttpClient的支持
+    max-connections: 200 # 最大的连接数
+    max-connections-per-route: 50 # 每个路径的最大连接数
+```
+
+## 最佳实践
+
+- 目的：简化 Feign 的客户端与服务提供者的`controller`中的重复代码编写
+
+### 继承方式
+
+![继承方式](pics/image-20211108150825060.png)
+
+- 重复的代码可以通过继承来共享
+  - 定义一个 API 接口，利用定义方法，并基于 SpringMVC 注解做声明
+  - Feign 客户端和 Controller 都集成该接口
+- 优点：简单，实现了代码共享
+- 缺点
+  - 服务提供方、服务消费方紧耦合
+  - 参数列表中的注解映射并不会继承，因此 Controller 中必须再次声明方法、参数列表、注解
+
+### 抽取方式
+
+- 将 Feign 的 Client 抽取为独立模块，并且把接口有关的 POJO、默认的 Feign 配置都放到这个模块中，提供给所有消费者使用
+
+![抽取方式](pics/image-20211108151209368.png)
+
+1. 创建一个module，命名为`feign-api`，引入`feign`的`starter`依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+2. `order-service`中编写的`UserClient`、`User`、`DefaultFeignConfiguration`都复制到`feign-api`项目中
+3. 在`order-service`中引入`feign-api`的依赖
+4. 修改`order-service`中的所有与上述三个组件有关的导包部分，改成导入`feign-api`中的包
+- **解决扫描包问题**：当定义的`FeignClient`不在`SpringBootApplication`的扫描包范围时，这些`FeignClient`无法使用
+  - 方式一：指定`FeignClient`
+    ```java
+    @EnableFeignClients(basePackages = "com.njk.feign.clients")
+    ```
+  - 方式二（推荐使用）：指定`FeignClient`字节码
+    ```java
+    @EnableFeignClients(clients = {UserClient.class})
+    ```
+
+# Gateway 统一网关
 
 
 
@@ -478,10 +1051,9 @@ ribbon:
 
 
 
+  
 
-
-
-
+  
 
 
 
