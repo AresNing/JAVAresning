@@ -33,6 +33,7 @@
   - [Spring AOP](SSM框架/Spring_AOP.md)
   - [SpringMVC](SSM框架/SpringMVC.md)
   - [MyBatis](SSM框架/MyBatis.md)
+  - [MyBatisPlus](SSM框架/MyBatisPlus.md)
   - [SSM整合](SSM框架/SSM整合.md)
 
 - **微服务**
@@ -43,7 +44,14 @@
   - SpringCloud
     - [SpringCloud](微服务/SpringCloud/SpringCloud.md)
     - [Docker](微服务/SpringCloud/Docker.md)
+    - [RabbitMQ](微服务/SpringCloud/RabbitMQ.md)
     - [Nacos集群搭建](微服务/SpringCloud/Nacos集群搭建.md)
+    - [Docker安装](微服务/SpringCloud/Docker安装.md)
+    - [RabbitMQ安装](微服务/SpringCloud/RabbitMQ安装.md)
+  - ElasticSearch
+    - [ElasticSearch-数据存储](微服务/ElasticSearch/ElasticSearch_数据存储.md)
+    - [ElasticSearch-数据分析](微服务/ElasticSearch/ElasticSearch_数据分析.md)
+    - [ElasticSearch-深入](微服务/ElasticSearch/ElasticSearch_深入.md)
 
 - **分布式框架**
   
@@ -68,6 +76,8 @@
     - [贪心](数据结构与算法/贪心.md)
     - [双指针](数据结构与算法/双指针.md)
     - [位运算](数据结构与算法/位运算.md)
+    - [LRU算法](数据结构与算法/LRU算法.md)
+    - [LFU算法](数据结构与算法/LFU算法.md)
   
 - **计算机基础**
   - 操作系统

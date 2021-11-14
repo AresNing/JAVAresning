@@ -745,7 +745,6 @@ public class UserController {
 - 微服务启动时，会去 Nacos 读取多个配置文件
   - `[spring.application.name]-[spring.profiles.active].yaml`：环境配置，例如：`userservice-dev.yaml`
   - `[spring.application.name].yaml`：不包含环境，因此可以被多个环境共享，例如：`userservice.yaml`
-
 - 优先级：`服务名-profile.yaml` > `服务名称.yaml` > 本地配置
 
 ![多环境配置共享](pics/image-20211108131718394.png)
@@ -893,7 +892,6 @@ public class OrderService {
 | feign.Retryer          | 失败重试机制     | 请求失败的重试机制，默认是没有，不过会使用 Ribbon 的重试    |
 
 - 日志的级别分为四种：
-
   - NONE：不记录任何日志信息，这是默认值
   - BASIC：仅记录请求的方法，URL 以及响应状态码和执行时间
   - HEADERS：在 BASIC 的基础上，额外记录了请求和响应的头信息
@@ -1116,10 +1114,7 @@ spring:
 ## 断言工厂
 
 - 在配置文件中写的断言规则只是字符串，这些字符串会被 Predicate Factory 读取并处理，转变为路由判断的条件
-  - 例如`Path=/user/**`是按照路径匹配，这个规则是由
-
-    `org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory`类来处理
-
+  - 例如`Path=/user/**`是按照路径匹配，这个规则是由`org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory`类来处理
 - Spring 提供了11种基本的 [Predicate 工厂](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#gateway-request-predicates-factories)
 
 | **名称**   | **说明**                       | **示例**                                                     |
@@ -1317,10 +1312,8 @@ spring:
 
 ## 限流过滤器
 
-- 限流作用：限流是保护服务器，避免因过多请求而导致服务器过载甚至宕机
-
-- 限流算法
-
+- **限流作用：限流是保护服务器，避免因过多请求而导致服务器过载甚至宕机**
+- **限流算法**
   - 计数器算法（又称为窗口计数器算法、滑动窗口计数器算法）
     1. 将时间划分为多个窗口；
     2. 在每个窗口内每有一次请求就将计数器加一，当时间到达下一个窗口时，计数器重置；
@@ -1340,6 +1333,4 @@ spring:
     2. 请求进入后，必须先尝试从桶中获取令牌，获取到令牌后才可以被处理
     3. 如果令牌桶中没有令牌，则请求等待或丢弃
   
-  ![image-20211109151210823](pics/image-20211109151210823.png)
-  
-    
+  ![令牌桶算法](pics/image-20211109151210823.png)

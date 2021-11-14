@@ -2351,6 +2351,26 @@ for(元素类型 元素名 : 集合名或数组名) {
 - 扩容机制和`HashSet`相同（`HashSet`底层是`HashMap`）
 - JDK 7 的`HashMap`底层实现[ 数组 + 链表 ]，JDK 8 的`HashMap`底层实现[ 数组 + 链表 + 红黑树]
 
+## HashMap 的 computeIfAbsent()、getOrDefault()、putIfAbsent()
+
+### computeIfAbsent()
+
+- `V computeIfAbsent(K, Function<? super K, ? extends V>)`
+- 方法有两个参数，`Key`和一个根据`Key`来产生`Value`的`Function`；然后返回一个`Value`
+- 方法会检查`Map`中的`Key`，如果发现`Key`不存在或者对应的值是`null`，则调用`Function`来产生一个值，**然后将其放入 Map**，最后返回这个值；否则的话返回`Map`已经存在的值
+
+> 补充：在 ConcurrentHashMap 中，这个方法保证线程安全，且多线程并发执行的情况下，Function 参数只会被调用一次。所以这个方法完全可以代替 DCL（Double Check Lock）写法
+
+### getOrDefault()
+
+- `V getOrDefault(Object, V)`
+- 方法同样检查`Map`中的`Key`，如果发现`Key`不存在或者对应的值是`null`，则返回第二个参数即默认值。注意，**该默认值不会放入`Map`**
+
+### putIfAbsent()
+
+- `V putIfAbsent(K, V)`
+- 如果`Key`不存在或者对应的值是`null`，则将`Value`设置进去，然后返回`null`；否则只返回`Map`当中对应的值，而不做其他操作
+
 # HashTable
 
 ## 基本介绍
@@ -2366,6 +2386,10 @@ for(元素类型 元素名 : 集合名或数组名) {
 | ----------- | ---- | ---------------- | ---- | --------------------- |
 | `HashMap`   | 1.2  | 不安全           | 高   | :heavy_check_mark:    |
 | `HashTable` | 1.0  | 安全             | 较低 | :x:                   |
+
+# LinkedHashSet
+
+# LinkedHashMap
 
 # Properties
 
