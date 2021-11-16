@@ -22,5 +22,6 @@
 
 - ElasticSearch
   - [ElasticSearch-数据存储](微服务/ElasticSearch/ElasticSearch_数据存储.md)
-  - [ElasticSearch-数据分析](微服务/ElasticSearch/ElasticSearch_数据分析.md)
+  - [ElasticSearch-数据搜索](微服务/ElasticSearch/ElasticSearch_数据搜索.md)
   - [ElasticSearch-深入](微服务/ElasticSearch/ElasticSearch_深入.md)
+  - [ElasticSearch安装](微服务/ElasticSearch/ElasticSearch安装.md)
