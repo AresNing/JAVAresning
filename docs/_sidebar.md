@@ -14,6 +14,8 @@
     - [设计模式七大原则](Java高级/设计模式/设计模式七大原则.md)
     - [UML类图](Java高级/设计模式/UML类图.md)
     - [代理模式](Java高级/设计模式/代理模式.md)
+    - [观察者模式](Java高级/设计模式/观察者模式.md)
+    - [适配器模式](Java高级/设计模式/适配器模式.md)
   
 - **JavaWeb**
   - [JavaWeb学习路线](JavaWeb/JavaWeb学习路线.md)
@@ -33,7 +35,17 @@
   - [Spring AOP](SSM框架/Spring_AOP.md)
   - [SpringMVC](SSM框架/SpringMVC.md)
   - [MyBatis](SSM框架/MyBatis.md)
-  - [MyBatisPlus](SSM框架/MyBatisPlus.md)
+  - MyBatisPlus
+    - [MyBatisPlus整合其它框架](SSM框架/MyBatisPlus/MyBatisPlus整合其它框架.md)
+    - [通用CRUD](SSM框架/MyBatisPlus/通用CRUD.md)
+    - [配置](SSM框架/MyBatisPlus/配置.md)
+    - [条件构造器](SSM框架/MyBatisPlus/条件构造器.md)
+    - [ActiveRecord](SSM框架/MyBatisPlus/ActiveRecord.md)
+    - [插件](SSM框架/MyBatisPlus/插件.md)
+    - [Sql注入器](SSM框架/MyBatisPlus/Sql注入器.md)
+    - [常用功能](SSM框架/MyBatisPlus/常用功能.md)
+    - [代码生成器](SSM框架/MyBatisPlus/代码生成器.md)
+    - [MyBatisX插件](SSM框架/MyBatisPlus/MyBatisX.md)
   - [SSM整合](SSM框架/SSM整合.md)
 
 - **微服务**
@@ -87,7 +99,7 @@
     - [物理层](计算机基础/计算机网络/物理层.md)
     - [数据链路层](计算机基础/计算机网络/数据链路层.md) 
     - [网络层](计算机基础/计算机网络/网络层.md) 
-    - [传输层](计算机基础/计算机网络/传输层.md) 
+    - [运输层](计算机基础/计算机网络/运输层.md) 
     - [应用层](计算机基础/计算机网络/应用层.md)
 
 - **Code Practice**

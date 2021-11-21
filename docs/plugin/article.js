@@ -38,7 +38,7 @@ import parser from "./parser.js";
                     .replace(/\/master/, "/blob/master");
             } else {
                 url =
-                    "https://github.com/RogerRordo/rogerrordo.github.io/blob/master/docs/" +
+                    "https://github.com/AresNing/JAVAresning/tree/master/docs/" +
                     vm.route.file;
             }
             var urlSplit = url.split("/");
