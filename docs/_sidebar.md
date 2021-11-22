@@ -65,6 +65,10 @@
     - [ElasticSearch-数据搜索](微服务/ElasticSearch/ElasticSearch_数据搜索.md)
     - [ElasticSearch-深入](微服务/ElasticSearch/ElasticSearch_深入.md)
     - [ElasticSearch安装](微服务/ElasticSearch/ElasticSearch安装.md)
+  - Sentinel
+    - [微服务保护](微服务/Sentinel/微服务保护.md)
+    - [Jmeter快速入门](微服务/Sentinel/Jmeter快速入门.md)
+    - [Sentinel规则持久化](微服务/Sentinel/Sentinel规则持久化.md)
 
 - **分布式框架**
   

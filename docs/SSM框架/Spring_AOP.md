@@ -366,7 +366,7 @@ public Object around(ProceedingJoinPoint pjp) throws Throwsable {
 - 抽取方法：在切面类内定义方法，在该方法上使用`@Pointcut`注解定义切点表达式，然后在增强注解中进行引用
 
 ```java
-@Componet("myAspect")
+@Component("myAspect")
 @Aspect
 public class MyAspect {
     // 前置增强方法
