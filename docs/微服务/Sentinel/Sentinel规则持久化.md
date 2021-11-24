@@ -116,12 +116,12 @@ nacos.addr=localhost:8848
 
 - 启动方式跟官方一样
 
-```shell
+```bash
 java -jar sentinel-dashboard.jar
 ```
 
 - 如果要修改nacos地址，需要添加参数
 
-```shell
+```bash
 java -jar -Dnacos.addr=localhost:8848 sentinel-dashboard.jar
 ```
