@@ -31,3 +31,8 @@
   - [微服务保护](微服务/Sentinel/微服务保护.md)
   - [Jmeter快速入门](微服务/Sentinel/Jmeter快速入门.md)
   - [Sentinel规则持久化](微服务/Sentinel/Sentinel规则持久化.md)
+
+
+- Seata
+  - [Seata](微服务/Seata/Seata.md)
+  - [Seata部署和集成](微服务/Seata/Seata部署和集成.md)

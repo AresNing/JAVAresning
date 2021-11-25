@@ -837,7 +837,38 @@ super(parameterList); // 只能放在构造器的第一句，且只能出现一�
 3. 把**常量放在`equals()`方法的前面**，可以**避免空指针异常**
 
 ```java
-常量.equals(变量);
+常量.equals(变量); // 适合已知其中一个比较对象为常量的情况
+```
+
+4. **为避免空指针异常，推荐使用`Objects.equals(Object a, Object b)`方法**
+   - 源码分析
+
+```java
+public final class Objects {
+    private Objects() {
+        throw new AssertionError("No java.util.Objects instances for you!");
+    }
+
+    /**
+     * Returns {@code true} if the arguments are equal to each other
+     * and {@code false} otherwise.
+     * Consequently, if both arguments are {@code null}, {@code true}
+     * is returned and if exactly one argument is {@code null}, {@code
+     * false} is returned.  Otherwise, equality is determined by using
+     * the {@link Object#equals equals} method of the first
+     * argument.
+     *
+     * @param a an object
+     * @param b an object to be compared with {@code a} for equality
+     * @return {@code true} if the arguments are equal to each other
+     * and {@code false} otherwise
+     * @see Object#equals(Object)
+     */
+    public static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+    ...
+}
 ```
 
 ## hashCode 方法
