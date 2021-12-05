@@ -2,12 +2,15 @@
   - [Introduction](Homepage/Intro)
 
 - **Java基础**
-  - [Detail](Java基础/Detail.md)
+  - [Detail0](Java基础/Detail0.md)
+  - [Detail1](Java基础/Detail1.md)
   - [Detail2](Java基础/Detail2.md)
+  - [Detail3](Java基础/Detail3.md)
   
 - **Java高级**
   - [Java高级学习路线](Java高级/Java高级学习路线.md)
-  - [多线程高并发](Java高级/多线程高并发/)
+  - 多线程高并发
+    - [Java并发基础](Java高级/多线程高并发/Java并发基础.md)
   - [JVM](Java高级/JVM/)
   - 设计模式
     - [设计模式](Java高级/设计模式/设计模式.md)
@@ -53,6 +56,7 @@
   - SpringBoot
     - [SpringBoot](微服务/SpringBoot/SpringBoot.md)
     - [Lombok](微服务/SpringBoot/Lombok.md)
+    - [log4j](微服务/SpringBoot/log4j.md)
   - SpringCloud
     - [SpringCloud](微服务/SpringCloud/SpringCloud.md)
     - [Docker](微服务/SpringCloud/Docker.md)
@@ -70,8 +74,14 @@
     - [Jmeter快速入门](微服务/Sentinel/Jmeter快速入门.md)
     - [Sentinel规则持久化](微服务/Sentinel/Sentinel规则持久化.md)
   - Seata
-    - [Seata](微服务/Seata/Seata.md)
+    - [分布式事务](微服务/Seata/分布式事务.md)
     - [Seata部署和集成](微服务/Seata/Seata部署和集成.md)
+  - Redis
+    - [分布式缓存](微服务/Redis/分布式缓存.md)
+    - [Redis集群](微服务/Redis/Redis集群.md)
+  - RabbitMQ
+    - [服务异步通讯](微服务/RabbitMQ/服务异步通讯.md)
+    - [RabbitMQ部署](微服务/RabbitMQ/RabbitMQ部署.md)
 
 - **分布式框架**
   
@@ -103,6 +113,7 @@
   - 操作系统
     - [操作系统基础](计算机基础/操作系统/操作系统基础.md)
     - [进程与线程](计算机基础/操作系统/进程与线程.md)
+    - [内存管理](计算机基础/操作系统/内存管理.md)
   - 计算机网络
     - [基础知识](计算机基础/计算机网络/基础知识.md)
     - [物理层](计算机基础/计算机网络/物理层.md)

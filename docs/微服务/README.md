@@ -9,6 +9,7 @@
 - SpringBoot
   - [SpringBoot](微服务/SpringBoot/SpringBoot.md)
   - [Lombok](微服务/SpringBoot/Lombok.md)
+  - [log4j](微服务/SpringBoot/log4j.md)
 
 
 - SpringCloud
@@ -34,5 +35,14 @@
 
 
 - Seata
-  - [Seata](微服务/Seata/Seata.md)
+  - [分布式事务](微服务/Seata/分布式事务.md)
   - [Seata部署和集成](微服务/Seata/Seata部署和集成.md)
+
+
+- Redis
+  - [分布式缓存](微服务/Redis/分布式缓存.md)
+  - [Redis集群](微服务/Redis/Redis集群.md)
+
+- RabbitMQ
+  - [服务异步通讯](微服务/RabbitMQ/服务异步通讯.md)
+  - [RabbitMQ部署](微服务/RabbitMQ/RabbitMQ部署.md)
