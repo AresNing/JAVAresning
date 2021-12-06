@@ -137,7 +137,7 @@ rabbitmq-plugins enable rabbitmq_delayed_message_exchange
 
 接下来，我们看看如何安装RabbitMQ的集群。
 
-## 2.1.集群分类
+## 3.1.集群分类
 
 在RabbitMQ的官方文档中，讲述了两种集群的配置方式：
 
@@ -164,7 +164,7 @@ rabbitmq-plugins enable rabbitmq_delayed_message_exchange
 
 
 
-## 2.2.获取cookie
+## 3.2.获取cookie
 
 RabbitMQ底层依赖于Erlang，而Erlang虚拟机就是一个面向分布式的语言，默认就支持集群模式。集群模式中的每个RabbitMQ 节点使用 cookie 来确定它们是否被允许相互通信。
 
@@ -200,7 +200,7 @@ docker rm -f mq
 
 
 
-## 2.3.准备集群配置
+## 3.3.准备集群配置
 
 在/tmp目录新建一个配置文件 rabbitmq.conf：
 
@@ -267,7 +267,7 @@ cp .erlang.cookie mq3
 
 
 
-## 2.4.启动集群
+## 3.4.启动集群
 
 创建一个网络：
 
@@ -328,7 +328,7 @@ rabbitmq:3.8-management
 
 
 
-## 2.5.测试
+## 3.5.测试
 
 在mq1这个节点上添加一个队列：
 
@@ -340,7 +340,7 @@ rabbitmq:3.8-management
 
 
 
-### 2.5.1.数据共享测试
+### 3.5.1.数据共享测试
 
 点击这个队列，进入管理页面：
 
@@ -360,7 +360,7 @@ rabbitmq:3.8-management
 
 
 
-### 2.5.2.可用性测试
+### 3.5.2.可用性测试
 
 我们让其中一台节点mq1宕机：
 
