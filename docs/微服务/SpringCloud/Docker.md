@@ -115,6 +115,17 @@ docker run \
   nginx \
 ```
 
+```bash
+docker run \
+  --name mr \
+  -p 6379:6379 \
+  -v /usr/local/redis-6.2.4/redis.conf:/etc/redis/redis.conf \
+  -v /usr/local/redis-6.2.4/data:/etc/redis/data \
+  -d redis \
+  redis-server /etc/redis/redis.conf \
+  --appendonly yes
+```
+
 - -v [volume名称]:[容器内目录]
 
 ### 挂载本地目录

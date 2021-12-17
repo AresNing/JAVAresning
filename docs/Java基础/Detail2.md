@@ -56,6 +56,11 @@
   - 较短的字符串和较长的字符串从第一个字符开始比较，如果一一对应的话就返回两个字符串`length`之差
   - 不对应的话就返回第一个不对应的字符的ASCII码之差
 
+## StringUtils.isEmpty() 与 String.isEmpty()
+
+- `StringUtils.isEmpty`：Checks if a String is empty ("") or `null`
+- `StringUtils.isEmpty` = `String.isEmpty` checks + checks for `null`
+
 ## String不可变的原因
 
 1. 字符串常量池的需要

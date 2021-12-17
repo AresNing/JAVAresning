@@ -515,8 +515,6 @@
 - `setProperty(key, value)`：设置键值对到`Properties`对象
 - `store()`：将`Properties`中的键值对存储到配置文件中，在IDEA中，若信息中含有中文，会存储为`unicode`码
 
-# 网络编程
-
 # 反射 reflection
 
 ## 基本介绍

@@ -4,7 +4,7 @@
 - 并发执行速度不一定会比串行快，因为线程有创建和上下文切换的开销
 - 减少上下文切换的方法
   - 无锁并发编程：如将数据的 ID 按照 Hash 算法取模分段，不同的线程处理不同段的数据
-  -  CAS 算法：Java 的 Atomic 包使用 CAS 算法来更新数据，而无需加锁
+  -  [CAS 算法](https://blog.csdn.net/ls5718/article/details/52563959)：Java 的 Atomic 包使用 CAS 算法来更新数据，而无需加锁
   - 使用最少线程：避免创建不需要的线程
   - 协程：在单线程里实现多任务的调度，并在单线程里维持多个任务间的切换
 
@@ -154,7 +154,7 @@ public synchronized void join() {
 # park/unpark
 
 - 一个线程调用方法`LockSupport.park()`，该线程状态会从`RUNNABLE`变成`WAITING`
-- 另一个线程调用`LockSupport.unpark(Thread 刚刚的线程)`，刚刚的线程会从 WAITING 回到 RUNNABLE
+- 另一个线程调用`LockSupport.unpark(Thread 刚刚的线程)`，刚刚的线程会从 `WAITING` 回到 `RUNNABLE`
 - 从实现机制上看，`park/unpark`比`wait/notify`更为简单
   1. `park`和`unpark`无需事先获取锁，或者说跟锁压根无关
   2. 没有什么等待队列一说，`unpark`会精准唤醒某一个确定的线程

@@ -11,6 +11,8 @@
   - [Java高级学习路线](Java高级/Java高级学习路线.md)
   - 多线程高并发
     - [Java并发基础](Java高级/多线程高并发/Java并发基础.md)
+    - [synchronized关键字](Java高级/多线程高并发/synchronized关键字.md)
+    - [volatile关键字](Java高级/多线程高并发/volatile关键字.md)
   - [JVM](Java高级/JVM/)
   - 设计模式
     - [设计模式](Java高级/设计模式/设计模式.md)
@@ -121,6 +123,10 @@
     - [网络层](计算机基础/计算机网络/网络层.md) 
     - [运输层](计算机基础/计算机网络/运输层.md) 
     - [应用层](计算机基础/计算机网络/应用层.md)
+
+- **Git**
+  - [Git基础](Git/Git基础.md)
+  - [Git远程仓库](Git/Git远程仓库.md)
 
 - **Code Practice**
   - [Input & Output in OJ](CodePractice/OJ_Input_Output.md)
