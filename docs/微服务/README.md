@@ -42,6 +42,7 @@
 - Redis
   - [分布式缓存](微服务/Redis/分布式缓存.md)
   - [Redis集群](微服务/Redis/Redis集群.md)
+  - [Redis压测](微服务/Redis/Redis压测.md)
 
 
 - RabbitMQ

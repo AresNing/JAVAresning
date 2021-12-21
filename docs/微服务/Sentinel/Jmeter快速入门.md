@@ -66,3 +66,16 @@ language=zh_CN
 8. 结果树：
 
 ![image-20210715200336526](pics/image-20210715200336526.png)
+
+# 3.JMeter命令行
+
+## 3.1.在windows上录好jmx
+
+## 3.2.命令行
+
+```bash
+/usr/local/jmeter/apache-jmeter-5.4.2/bin/jmeter.sh -n -t XXX.jmx -l result.jtl
+```
+
+## 3.3.把result.jtl导入Jmeter
+

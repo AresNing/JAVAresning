@@ -6,6 +6,10 @@
   - [Detail1](Java基础/Detail1.md)
   - [Detail2](Java基础/Detail2.md)
   - [Detail3](Java基础/Detail3.md)
+  - 集合容器
+    - [ArrayList](Java基础/集合容器/ArrayList.md)
+    - [HashMap](Java基础/集合容器/HashMap.md)
+    - [ConcurrentHashMap](Java基础/集合容器/ConcurrentHashMap.md)
   
 - **Java高级**
   - [Java高级学习路线](Java高级/Java高级学习路线.md)
@@ -81,6 +85,7 @@
   - Redis
     - [分布式缓存](微服务/Redis/分布式缓存.md)
     - [Redis集群](微服务/Redis/Redis集群.md)
+    - [Redis压测](微服务/Redis/Redis压测.md)
   - RabbitMQ
     - [服务异步通讯](微服务/RabbitMQ/服务异步通讯.md)
     - [RabbitMQ部署](微服务/RabbitMQ/RabbitMQ部署.md)
