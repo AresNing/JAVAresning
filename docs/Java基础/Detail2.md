@@ -410,6 +410,32 @@ for(元素类型 元素名 : 集合名或数组名) {
 
 - 如果使用的是指定大小的构造器，则初始`elementData`容量为指定大小；如需再次扩容，则扩容`elementData`为原来的`1.5`倍
 
+## ArrayList 转成 int 数组
+
+- 方法一：利用 JDK 5 之后支持自动装箱/拆箱的特点
+
+```java
+// 再将Integer型数组转为int型数组
+int[] intArray = new int[arrList.size()];
+for(int i = 0; i < intArray.length; i++) {
+    intArray[i] = arrList.get(i);
+}
+return intArray;
+```
+
+- 方法二：使用`toArray(new Integer[0])`方法转为`Integer`数组，然后再转为整型数组
+
+```java
+// 先将set集合转为Integer型数组
+Integer[] tmp = arrList.toArray(new Integer[0]);
+// 再将Integer型数组转为int型数组
+int[] intArray = new int[tmp.length];
+for(int i = 0; i < tmp.length; i++) {
+    intArray[i] = tmp[i].intValue();
+}
+return intArray;
+```
+
 # Vector 底层结构
 
 ## 基本介绍

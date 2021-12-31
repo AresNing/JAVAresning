@@ -470,6 +470,63 @@ public void testTopicExchange() {
 }
 ```
 
+## Headers
+
+![image-20211230203106918](pics/image-20211230203106918.png)
+
+- HeadersExchange 与 TopicExchange 类似，区别在于：
+  - TopicExchange 的路由值基于 routingKey， HeadersExchange 的路由值基于消息的 header 键值对`key-value`
+  - TopicExchange 的 routingKey 只能是字符串`String`，HeadersExchange 还可以是整型和哈希值
+- 消息 header 键值对里有一个特殊的键`x-match`，它有两个值：
+  - `all`：默认值。Publisher 的 header 键值对与 目标 Queue 的 header 键值对**全部匹配**，才能路由到对应队列
+  - `any`：Publisher 的 header 键值对与 目标 Queue 的 header 键值对**任意一个匹配**，就能路由到对应队列
+
+### MQ 配置
+
+```java
+	/**
+	 * Header模式 交换机Exchange
+	 * */
+	@Bean
+	public HeadersExchange headersExchage(){
+		return new HeadersExchange(HEADERS_EXCHANGE);
+	}
+	@Bean
+	public Queue headerQueue1() {
+		return new Queue(HEADER_QUEUE, true);
+	}
+	@Bean
+	public Binding headerBinding() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("header1", "value1");
+		map.put("header2", "value2");
+		return BindingBuilder.bind(headerQueue1()).to(headersExchage()).whereAll(map).match();
+	}
+```
+
+### 消息发送
+
+```java
+	public void sendHeader(Object message) {
+		String msg = RedisService.beanToString(message);
+		log.info("send fanout message:"+msg);
+		MessageProperties properties = new MessageProperties();
+		properties.setHeader("header1", "value1");
+		properties.setHeader("header2", "value2");
+		Message obj = new Message(msg.getBytes(), properties);
+		amqpTemplate.convertAndSend(MQConfig.HEADERS_EXCHANGE, "", obj);
+	}
+```
+
+### 消息接收
+
+```java
+		@RabbitListener(queues=MQConfig.HEADER_QUEUE)
+		public void receiveHeaderQueue(byte[] message) {
+			log.info(" header  queue message:"+new String(message));
+		}
+```
+
 ## 消息转换器
 
 - 在 Spring AMQP 的发送方法中，接收消息的类型是`Object`，即**可以发送任意对象类型的消息**，Spring AMQP 将**消息序列化为字节后发送给 MQ**，**接收消息时把字节反序列化为 Java 对象**
