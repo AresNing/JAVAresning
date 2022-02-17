@@ -29,6 +29,7 @@
 - **JavaWeb**
   - [JavaWeb学习路线](JavaWeb/JavaWeb学习路线.md)
   - [数据库](JavaWeb/数据库.md)
+  - [MySQL](JavaWeb/MySQL.md)
   - [前端基础](JavaWeb/前端基础.md)
   - [前端基础2](JavaWeb/前端基础2.md)
   - [Tomcat](JavaWeb/Tomcat.md)
