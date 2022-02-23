@@ -47,7 +47,7 @@
 - 不考虑并列名次的情况
 - 比如前3名是并列的名次，排名是正常的**1，2，3**，4
 
-## 示例
+## 示例-排序函数
 
 ### 排名问题
 
@@ -69,10 +69,59 @@ from
 ```sql
 select * from
 	(select *,
-    		row_number() over(partition by 要分组的列 order by 要排序的列 desc)) as ranking
+    		row_number() over(partition by 要分组的列 order by 要排序的列 desc) as ranking
      from 表名) as a
 where ranking <= N;
 ```
+
+### 连续性问题
+
+>每行的人数大于或等于 `N` 且 `id` 连续的三行或更多行记录
+>
+>某某属性的值需要连续的连续性问题
+
+- `id - row_number()`
+
+```sql
+select
+	id, people
+from (
+	select
+    	id, people, count(*) over (partition by rank1) as rank2
+    from (
+    	select *, id - row_number() over (order by id) as rank1
+        from Stadium
+        where people >= N
+    ) as x
+) as y
+where rank2 >= 3
+order by id;
+```
+
+- `lag()`，`lead()`
+
+```sql
+select
+	id, people
+from (
+	select id, people,
+    	lead(people, 1) over(order by id) as lead1,
+    	lead(people, 2) over(order by id) as lead2,
+    	lag(people, 1) over(order by id) as lag1,
+    	lag(people, 2) over(order by id) as lag2
+   	from
+    	Stadium
+) as t
+where
+	(people >= N and lead1 >= N and lag1 >= N) or
+	(people >= N and lead1 >= N and lag2 >= N) or
+	(people >= N and lag1 >= N and lag2 >= N)
+```
+
+## 其他常用窗口函数
+
+- `lag(<expression>[, offset[, default_value]])`：从当前行**向前**访问`offset`行；如果没有前`offset`行，返回`default_value`
+- `lead(<expression>[, offset[, default_value]])`：从当前行**向后**访问`offset`；如果没有后`offset`行，返回`default_value`
 
 ## 聚合函数作为窗口函数
 
@@ -100,4 +149,368 @@ select
 from
 	class;
 ```
+
+# 视图
+
+## 基本概念
+
+- **视图是虚拟的表，包含的是检索数据的查询，而不是数据本身**
+- 视图提供了一种 MySQL 的 `SELECT` 语句层次的封装
+
+## 优点
+
+- 复用 SQL 语句
+- 简化复杂的 SQL 操作
+- 使用表的组成部分而不是整个表
+
+## 规则与限制
+
+- 视图必须唯一命名
+- 视图数目没有限制
+- 视图可以嵌套
+- 每次使用视图时，都必须处理查询执行时所需的任一个检索；创建复杂的视图或嵌套多个视图，可能会导致性能下降得很厉害
+- `ORDER BY`可以用在视图中
+- 视图不能索引，也不能有关联的触发器或默认值
+- 视图可以和表一起使用
+
+## 使用视图
+
+- 视图创建
+
+```sql
+create view 视图名称 as
+...(具体的查询语句)
+```
+
+```sql
+create view productcustomers as
+select cust_name, cust_contact, prod_id
+from customers, orders, orderitems
+where customers.cust_id = orders.cust_id
+	and orderitems.order_num = orders.order_num
+```
+
+- 查看创建视图的语句
+
+```sql
+show create view 视图名称
+```
+
+- 删除视图
+
+```sql
+drop view 视图名称
+```
+
+## 更新视图
+
+- 视图是可更新的，更新一个视图将更新其基表
+- **并非所有视图都是可更新的**。基本上可以说，如果 MySQL 不能正确地确定被更新的基数据，则不允许更新（包括插入和删除）
+- **如果视图定义中有以下操作，则不能进行视图的更新：**
+  - 分组（`GROUP BY`和`HAVING`）
+  - 联结
+  - 子查询
+  - 并
+  - 聚合函数（`MIN()`，`SUM()`，`COUNT()`等）
+  - `DISTINCT`
+  - 导出计算列
+- 一般只含**直接查询**的视图可以被更新
+
+## 注意事项
+
+- 两条`WHERE`子句：如果从视图检索数据时使用了一条`WHERE`子句，则两组子句（一组在视图中，另一组是传递给视图的）将自动组合
+- 一般，**视图主要用于数据检索**（`SELECT`），而不用于更新（`INSERT`，`UPDATE`，`DELETE`）
+
+# 存储过程
+
+## 基本概念
+
+- 存储过程：一条或多条 MySQL 语句的集合，相当于 SQL 语句的批处理
+
+## 优点
+
+- 简单：把处理封装在容易使用的单元中，简化复杂的操作
+- 安全：防止错误，通过存储过程对基础数据的访问减少了数据讹误
+- 高性能：提高性能，使用存储过程比使用单独的 SQL 语句更快
+
+## 使用存储过程
+
+- 执行存储过程
+
+```sql
+call 存储过程名称(@变量名)
+```
+
+```sql
+call productpricing(@pricelow, @pricehigh, @priceaverage)
+```
+
+- 创建存储过程
+
+```sql
+create procedure 存储过程名称()
+begin
+	...(具体的SQL语句)
+end
+```
+
+```sql
+create procedure 存储过程名称(
+	in 参数名1 参数类型,  -- in：传递给存储过程
+    out 参数名2 参数类型,  -- out：从存储过程传出
+    inout 参数名3 参数类型  -- inout：对存储过程传入和传出
+)
+begin
+	-- 一系列SELECT语句，用来检索值，然后保存到相应的变量
+	...(具体的SQL语句)
+	into 参数名2  -- into：保存到相应的变量
+end
+```
+
+- 删除存储过程
+
+```sql
+drop procedure 存储过程名称
+```
+
+- 显示创建存储过程的语句
+
+```sql
+show create procedure 存储过程名称
+```
+
+- 获得存储过程列表的详细信息
+
+```sql
+show procedure status
+```
+
+```sql
+show procedure status like '存储过程名称'  -- 限制其输出
+```
+
+# 游标
+
+## 基本概念
+
+- 游标（cursor）：被`SELECT`语句检索出来的结果集，而不是`SELECT`语句
+- 使用游标，可以在检索出来的行中前进或后退，像游标一样定位到某一行
+- **MySQL 游标只能用于存储过程（和函数）**
+
+## 使用游标
+
+- 步骤
+  1. 使用游标前，必须声明它，即定义要使用的`SELECT`语句
+  2. 声明后，必须打开游标以供使用，即使用定义的`SELECT`语句检索数据
+  3. 按需取出结果集中的各行
+  4. 结束游标使用时，必须关闭游标
+- 创建游标
+
+```sql
+create procedure processorders()
+begin
+	declare ordernumbers cursor  -- 声明游标
+	for
+	select order_num from orders;  -- 对应的select语句
+end;
+```
+
+- 打开和关闭游标
+
+```sql
+open ordernumbers;
+```
+
+```sql
+close ordernumbers;
+```
+
+# 触发器
+
+## 基本概念
+
+- 触发器：MySQL 在某个表发生更改时（分别是`INSERT`，`UPDATE`，`DELETE`语句），自动执行的 MySQL 语句
+- 其他 MySQL 语句不支持触发器
+- 只有表才支持触发器，视图不支持（临时表也不支持）
+- 触发器的一种非常有意义的使用是**创建审计跟踪**。使用触发器，
+  把更改（或者之前、之后的状态）记录到另一个表非常容易
+
+## 创建和删除触发器
+
+- 创建触发器
+
+```sql
+create trigger 触发器名称 after / before insert on 表名
+for each row ...[具体的sql语句]
+-- for each row 表示代码对每个插入行执行
+```
+
+- 删除触发器
+
+```sql
+drop trigger 触发器名称
+```
+
+## INSERT 触发器
+
+- INSERT 触发器在`INSERT`语句执行之前或之后执行
+- 在 INSERT 触发器代码内，**可引用一个名为`NEW`的虚拟表，访问被插入的行**
+- 在 BEFORE INSERT 触发器中，`NEW`中的值也可以被更新（允许更改被插入的值）
+- 对于`AUTO_INCREMENT`列，`NEW`在`INSERT`执行之前包含`0`，在`INSERT`执行之后包含新的自动生成值
+
+## DELETE 触发器
+- DELETE 触发器在`DELETE`语句执行之前或之后执行
+- 在 DELETE 触发器代码内，**可引用一个名为`OLD`的虚拟表，访问被删除的行**
+- `OLD`中的值全都是只读的，不能更新
+
+##UPDATE 触发器
+
+- UPDATE 触发器在`UPDATE`语句执行之前或之后执行
+- 在 UPDATE 触发器代码内，**可引用一个名为`OLD`的虚拟表访问以前的（UPDATE 语句前）的值，引用一个名为`NEW`的虚拟表访问新更新的值**
+- 在 BEFORE INSERT 触发器中，`NEW`中的值也可以被更新（允许更改被插入的值）
+- `OLD`中的值全都是只读的，不能更新
+
+## 注意事项
+
+- `BEFORE`用于数据验证（目的是保证插入/更新/删除表中的数据确实是需要的数据）
+
+# MVCC 多版本并发控制
+
+> [数据库基础（四）Innodb MVCC实现原理](https://zhuanlan.zhihu.com/p/52977862)
+>
+> [全网最全的一篇数据库MVCC详解，不全我负责](https://www.php.cn/mysql-tutorials-460111.html)
+
+## 基本概念
+
+- MVCC（多版本控制）解决了数据库加锁后的性能问题，解决读-写冲突的无锁并发控制
+- 数据库隔离级别**读已提交（RC）、可重复读（RR）**都是基于 MVCC 实现的
+
+## InnoDB MVCC 实现的关键点
+
+### 事务版本号
+
+- 每次事务开始前，会从数据库获得一个自增长的事务 ID，通过事务 ID 判断事务的执行先后顺序
+
+### 隐藏列
+
+| 列名           | 是否必须 | 描述                                                         |
+| -------------- | -------- | ------------------------------------------------------------ |
+| `trx_id`       | 是       | 记录操作该数据事务的事务 ID                                  |
+| `roll_pointer` | 是       | 相当于一个指针，指向回滚段的`undo`日志                       |
+| `row_id`       | 否       | 隐藏 ID ，当创建表没有合适的索引作为聚集索引时，会用该隐藏 ID 创建聚集索引 |
+
+### undo log
+
+- undo log（回滚日志）：主要记录数据被修改之前的日志，表中数据被修改前会先拷贝到 undo log，当事务进行回滚时可以通过 undo log 将数据还原
+- **undo log 的用途**
+  1. 保证事务回滚时的**原子性**和**一致性**，当事务进行回滚时可以通过 undo log 将数据恢复
+  2. 用于 **MVCC 快照读**的数据，在 MVCC 中通过读取 undo log 的历史版本数据，来实现不同的事务版本号拥有独立的快照数据
+
+### 版本链
+
+- 多个事务并行操作某一行数据时，不同事务对该行数据的修改会产生多个版本，然后通过回滚指针`roll_pointer`连成一个链表，这个链表就叫做**版本链**
+
+### Read View
+
+#### 概念
+
+- InnoDB 每个事务开启后都会得到一个 Read View，副本主要保存了当前数据库没有提交的事务的 ID，也就是说这个副本保存的是系统中不应该被当前事务看到的其他事务 ID 列表
+
+#### 作用
+
+- 判断当前事务可见哪个版本的数据
+
+#### 重要属性
+
+- `trx_ids`：当前数据库未提交的事务版本号的集合
+- `low_limit_id`：创建当前 read view 时，当前数据库最大的事务版本号 + 1
+- `up_limit_id`：创建当前 read view 时，当前数据库最小的未提交事务版本号
+- `creator_trx_id`：创建当前 read view 的事务版本号
+
+#### 匹配条件
+
+- 数据事务 ID `trx_id` < `up_limit_id`则显示，因为该数据是在当前事务之前就已经存在的
+- 数据事务 ID `trx_id` >= `low_limit_id`则不显示，因为该数据是在当前 read view 创建之后才产生的
+- `up_limit_id` <= 数据事务 ID `trx_id` < `low_limit_id`，则与未提交事务集合`trx_ids`里匹配，因为该数据有可能是在当前事务开始的时候还未提交的
+  1. 如果数据事务 ID `trx_id` 不存在于`trx_ids`集合则显示，因为 read view 产生时，数据事务已经提交
+  2. 如果数据事务 ID `trx_id` 存在与`trx_ids`集合，且数据事务 ID `trx_id` = `creator_trx_id`则显示，因为虽然 read view 产生的时候数据事务还未提交，但该数据是当前事务自己生成的，自己生成的数据自己能看见
+  3. 如果数据事务 ID `trx_id` 存在与`trx_ids`集合，且数据事务 ID `trx_id` ≠ `creator_trx_id`则不显示，因为 read view 生成的时候数据事务还未提交，而且该数据不是当前事务生成的
+- 当不满足 read view 条件时，从 undo log 获取数据的历史版本，然后数据的历史事务版本号再和 read view 条件匹配，直到找到满足条件的历史数据，否则返回空结果
+
+## InnoDB 实现 MVCC 的原理
+
+> InnoDB 实现 MVCC，是通过 Read View 和 undo log，Read View 帮助判断当前版本的数据是否对事务可见，undo log 保存数据的历史快照
+
+1. 获得当前事务版本号
+2. 获得一个 read view
+3. 查询到数据，与 read view 事务版本号进行匹配
+4. 如果不符合 read view 条件，从 undo log 里获取数据的历史版本
+5. 返回符合条件的数据，否则返回空数据
+
+## 补充
+
+### 各种事务隔离级别下的 Read View 工作方式
+
+- **读已提交（RC）**级别下，同一个事务里的每一次查询都会获得一个新的 read view 副本，可能会导致同一事务里前后读取数据不一致的问题（**不可重复读**）
+- **可重复读（RR）**级别下，一个事务只会获取一次 read view 副本，从而保证每次查询的数据都是一样的，做到**可重复读**
+- 读未提交（RU）级别下，事务不会获取 read view 副本
+
+### 快照读、当前读
+
+#### 快照读
+
+- 快照读：不是读取最新的数据，而是读取 undo log 历史版本（历史快照）
+- **快照读可以使普通的`SELECT`读取数据时不需要对表数据进行加锁**，从而解决了因为对表数据加锁而导致的两个问题
+  1. **解决了因为加锁导致写数据时的读冲突**
+  2. **解决了因为加锁导致读数据时的写冲突**
+
+#### 当前读
+
+- 当前读：读取数据库最新的数据
+- 当前读是需要对数据进行加锁的，因为当前读是读取最新的数据，而且要保证事务的隔离性
+- 以下操作都是当前读
+  - `select ... in share mode`（共享锁）
+  - `select ... for update`（排它锁）
+  - `update`（排它锁）
+  - `insert`（排它锁）
+  - `delete`（排它锁）
+
+## MVCC 与幻读问题
+
+### 结论
+
+- 快照读的情况下可以避免幻读问题
+- 当前读的情况下需要使用间隙锁来解决幻读问题
+
+### MVCC 不存在幻读问题（RR级别的情况）
+
+- MVCC 属于快照读，快照读是不会对数据进行加锁，是通过事务版本号和 undo log 的历史版本读取数据
+- 插入的数据事务 ID 总是 大于等于 read view 的 `low_limit_id`，因此插入的数据不会显示
+
+### 当前读的幻读问题的解决方案
+
+- 当前读是读取最新的数据，如果在两次读取之前插入数据会造成幻读问题
+- MySQL 通过加间隙锁来避免不可重复读和幻读问题
+
+# ACID 的实现
+
+# MySQL 的存储引擎
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
