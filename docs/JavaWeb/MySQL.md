@@ -791,16 +791,16 @@ drop trigger 触发器名称
 
 ### redo log 与 bin log
 
-- 作用不同：
-- 层次不同
-- 内容不同
-- 写入时机不同
-
-
+- 作用不同：redo log 是在 MySQL 宕机时保持持久性的；bin log 是保证数据库可以基于时间点恢复数据，bin log 还用于主从复制
+- 层次不同：redo log 是由 InnoDB 存储引擎产生的；bin log 是由 MySQL 的上层产生的，bin log 不仅支持 InnoDB，还支持其他引擎
+- 内容不同：redo log 是物理日志，记录的是对于每页的修改；bin log 是逻辑日志，记录的是对应的 SQL 语句
+- 写入时机不同：redo log 默认是在事务提交的时候调用`fsync`将 redo log 写入磁盘，还可以通过改变参数来改变写入时机：主线程每隔1秒调用`fsync`或者事务提交的时候不调用`fsync`，只写入文件系统的缓存中；bin log 只在事务提交的时候写入磁盘
 
 ## 隔离性
 
 ### 定义
+
+- 
 
 ### 实现原理：加锁 + MVCC
 
