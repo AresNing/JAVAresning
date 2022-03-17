@@ -434,6 +434,8 @@ drop trigger 触发器名称
 
 - 对于外键列，如果没有显式地加索引，InnoDB 存储引擎会自动对其加索引，这样可以避免表锁
 
+> InnoDB 的行锁是通过给索引上的索引项加锁来实现的，只有通过索引查询数据，InnoDB 才能使用行锁，否则就会使用表锁
+
 ## 封锁协议
 
 > [数据库知识整理 - 并发控制（封锁、两段锁协议、意向锁）](https://blog.csdn.net/Ha1f_Awake/article/details/84994697?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2~default~CTRLIST~Rate-1.pc_relevant_paycolumn_v3&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2~default~CTRLIST~Rate-1.pc_relevant_paycolumn_v3&utm_relevant_index=1)
@@ -470,10 +472,10 @@ drop trigger 触发器名称
 
 ## 不同隔离级别的加锁策略
 
-- 读未提交（RU）：读不加锁，写操作加行锁
+- 读未提交（RU）：读不加锁，写操作利用记录锁算法加行锁
 - 读已提交（RC）：读不加锁，加写锁，读必须等待写事务结束
-- 可重复读（RR）：需要加读锁和写锁，事务结束后释放读锁
-- 可串行化（Serializable）：加读锁和写锁，读写互斥
+- 可重复读（RR）：利用 Next-Key Lock 算法加行锁，读操作的时候会锁定一个范围和记录本身
+- 可串行化（Serializable）：加读锁（共享锁）和写锁，读写互斥
 
 ## 隐式与显式锁定
 
@@ -498,7 +500,7 @@ drop trigger 触发器名称
 
 ### 行锁的3种算法
 
-- Record Lock：锁定一个记录上的索引
+- Record Lock：记录锁，锁定一个记录上的索引
 - Gap Lock：间隙锁，锁定索引之间的间隙，但不包括索引本身
 - Next-Key Lock：临键锁，Record Lock + Gap Lock，不仅锁定索引本身，而且还锁定索引之间的间隙（前开后闭区间）
 
@@ -800,15 +802,32 @@ drop trigger 触发器名称
 
 ### 定义
 
-- 
+- 事务之间互不干扰
 
 ### 实现原理：加锁 + MVCC
+
+#### 加锁机制：写-写隔离
+
+- 事务在修改数据时，需要先获得对应的锁；在事务在修改数据的期间，这部分数据是锁定的，只有等当前事务释放锁之后，其他事务才能修改数据
+- MyISAM 只支持表锁，InnoDB 同时支持表锁和行锁，大多数情况使用的行锁
+
+#### MVCC：读-写隔离
+
+- InnoDB 默认的隔离级别是可重复读 PR，可重复读解决了脏读和不可重复读，还通过 MVCC 解决幻读
+- MVCC 实现快照读，所以读操作不用加锁，读写不冲突
+- InnoDB 是通过 Read View 和 undo log 来实现 MVCC 的
 
 ## 一致性
 
 ### 定义
 
+- 数据库可以从一个一致性的状态，转变到另一个一致性的状态
+
 ### 实现原理
+
+- 保证一致性的前提是，保证原子性、持久性、隔离性
+- 数据库本身做一些限制，比如对插入的数据类型做规定，字符串长度不能超过列的限制之类的
+- 业务逻辑上保证数据的一致，比如转账的操作要保证扣除转账者的余额和增加接收者的余额
 
 # MySQL 的存储引擎
 
