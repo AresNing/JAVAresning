@@ -95,6 +95,14 @@ char c1 = s1.charAt(0);
 - `String.valueOf()`：推荐使用，可返回空字符串`null`
 - `(String)`强转：不推荐使用
 
+# 值传递与引用传递
+
+> [java基本数据类型传递与引用传递区别详解](https://blog.csdn.net/javazejian/article/details/51192130)
+>
+> [为什么 Java 只有值传递，但 C# 既有值传递，又有引用传递，这种语言设计有哪些好处？](https://www.zhihu.com/question/20628016/answer/28970414)
+
+- **Java 只有值传递，没有引用传递**
+
 # 算术运算符
 
 - `++`

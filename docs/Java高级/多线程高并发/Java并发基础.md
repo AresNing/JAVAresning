@@ -145,8 +145,6 @@ public synchronized void join() {
 }
 ```
 
-
-
 # ThreadLocal
 
 - `ThreadLocal`，线程变量，被附带在线程上，一个线程可以根据一个`ThreadLocal`对象查询到绑定在这个线程上的一个值，即通过`set(T)`方法来设置一个值，在当前线程下再通过`get()`方法获取到原先设置的值
@@ -181,3 +179,265 @@ public synchronized void join() {
   - **总结： 调用 `start()` 方法方可启动线程并使线程进入就绪状态，直接执行 `run()` 方法的话不会以多线程的方式执行**
   - 执行`new Thread()`，线程进入了新建状态；调用 `start()`方法，会启动一个线程并使线程进入了就绪状态，当分配到时间片后就可以开始运行了，**即`start()` 会执行线程的相应准备工作，然后自动执行 `run()` 方法的内容，这是真正的多线程工作**
   - 但是，直接执行`run()`方法，**会把`run()`方法当成一个`main`线程下的普通方法去执行，并不会在某个线程中执行它**，所以这并不是多线程工作
+
+# 线程交替打印问题
+
+> [面试官：请用五种方法实现多线程交替打印问题](https://zhuanlan.zhihu.com/p/370130458)
+
+- 问题的本质：线程通信问题，思路基本上是一个线程执行完毕，阻塞该线程，唤醒其他线程，按顺序执行下一个线程
+- 几种方法
+  1. `synchronized` + `wait/notify/notifyAll`
+  2. `join()`：在A线程中调用了B线程的`join()`方法时，表示只有当B线程执行完毕时，A线程才能继续执行
+  3. `Lock`：不管哪个线程拿到锁，只有符合条件的才能打印
+  4. `Lock` + `Condition`：实现对线程的精准唤醒，减少对同步锁的无意义竞争，浪费资源；和`synchronized` + `wait/notify/notifyAll`很像，`synchronized`对应`Lock`，`wait/notify`方法对应`await/signal`方法
+  5. `Semaphore`信号量：避免唤醒其他无意义的线程避免资源浪费
+     - `Semaphore`：用来控制同时访问某个特定资源的操作数量，或者同时执行某个制定操作的数量。`Semaphore`内部维护了一个计数器，其值为可以访问的共享资源的个数
+     - 一个线程要访问共享资源，先使用`acquire()`方法获得信号量，如果信号量的计数器值大于等于1，意味着有共享资源可以访问，则使其计数器值减去1，再访问共享资源。如果计数器值为0，线程进入休眠
+     - 当某个线程使用完共享资源后，使用`release()`释放信号量，并将信号量内部的计数器加1，之前进入休眠的线程将被唤醒并再次试图获得信号量
+  6. `AtomicInteger`
+  7. `LockSupport`
+  8. `CountDownLatch`
+
+## 三个线程交替打印ABC
+
+### synchronized + wait / notify
+
+```java
+class WaitNotifyABC {
+    private volatile int cnt = 0;
+    private static final Obejct LOCK = new Object();
+    
+    private void printABC(int order) {
+        for(int i = 0; i < 10; i++) { // 交替打印n=10次
+            synchronized (LOCK) {
+            while(cnt % 3 != order) {
+                try {
+                    LOCK.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            cnt++;
+            System.out.print(Thread.currentThread().getName());
+            LOCK.notifyAll();
+        	}
+        }
+    }
+    
+    public static void main(String[] args) {
+        WaitNotifyABC waitNotifyABC = new WaitNotifyABC();
+        new Thread(() -> waitNotifyABC.printABC(0), "A").start();
+        new Thread(() -> waitNotifyABC.printABC(1), "B").start();
+        new Thread(() -> waitNotifyABC.printABC(2), "C").start();
+    }
+}
+```
+
+### join()
+
+```java
+class JoinABC {
+    public static void main(String[] args) throws InterruptedException {
+        for(int i = 0; i < 10; i++) { // 交替打印n=10次
+            Thread t1 = new Thread(new printABC(null), "A");
+            Thread t2 = new Thread(new printABC(t1), "B");
+            Thread t3 = new Thread(new printABC(t2), "C");
+            t1.start();
+            t2.start();
+            t3.start();
+            Thread.sleep(10); //这里是要保证只有t1、t2、t3为一组，进行执行才能保证t1->t2->t3的执行顺序 
+        }
+    }
+    
+    static class printABC implements Runnable {
+        private Thread beforeThread;
+        public printABC(Thread beforeThread) {
+            this.beforeThread = beforeThread;
+        }
+        @Override
+        public void run() {
+            if(beforeThread != null) {
+                try {
+                    beforeThread.join();
+                    System.out.print(Thread.currentThread().getName());
+                } catch(Exception e){
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.print(Thread.currentThread().getName());
+            }
+        }
+    }
+}
+```
+
+### Lock
+
+```java
+class LockABC {
+    private volatile int cnt = 0;
+    private static Lock lock = new ReentrantLock();
+    
+    private void printABC(int order) {
+        for(int i = 0; i < 10;) { // 交替打印n=10次
+            lock.lock();
+            if(cnt % 3 == order) {
+                cnt++;
+                i++;
+                System.out.print(Thread.currentThread().getName());
+            }
+            lock.unlock();
+        }
+    }
+    
+    public static void main(String[] args) {
+        LockABC lockABC = new LockABC();
+        new Thread(() -> lockABC.printABC(0), "A").start();
+        new Thread(() -> lockABC.printABC(1), "B").start();
+        new Thread(() -> lockABC.printABC(2), "C").start();
+    }
+}
+```
+
+### Lock + Condition
+
+```java
+class LockConditionABC {
+    private volatile int cnt = 0;
+    private static Lock lock = new ReentrantLock();
+    private static Condition c1 = lock.newCondition();
+    private static Condition c2 = lock.newCondition();
+    private static Condition c3 = lock.newCondition();
+    
+    private void printABC(int order, Condition currentThread, Condition nextThread) {
+        for(int i = 0; i < 10;) { // 交替打印n=10次
+            lock.lock();
+            try {
+                while(cnt % 3 != order) {
+                    currentThread.await(); // 阻塞当前线程
+                }
+                num++;
+                i++;
+                System.out.print(Thread.currentThread().getName());
+                nextThread.signal(); // 唤醒下一个线程，而不是唤醒所有线程
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        LockConditionABC lockConditionABC = new LockConditionABC();
+        new Thread(() -> lockConditionABC.printABC(0, c1, c2), "A").start();
+        new Thread(() -> lockConditionABC.printABC(1, c2, c3), "B").start();
+        new Thread(() -> lockConditionABC.printABC(2, c3, c1), "C").start();
+    }
+}
+```
+
+### Semaphore
+
+```java
+class SemaphoreABC{
+
+    private static Semaphore s1 = new Semaphore(1); //因为先执行线程A，所以这里设s1的计数器为1
+    private static Semaphore s2 = new Semaphore(0);
+    private static Semaphore s3 = new Semaphore(0);
+
+    private void printABC(Semaphore currentThread, Semaphore nextThread) {
+        for(int i = 0; i < 10; i++) { // 交替打印10次
+            try {
+                currentThread.acquire(); // 阻塞当前线程，即信号量的计数器减1为0
+                System.out.print(Thread.currentThread().getName());
+                nextThread.release(); // 唤醒下一个线程，即信号量的计数器加1
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        SemaphoreABC semaphoreABC = new SemaphoreABC();
+        new Thread(() -> semaphoreABC.printABC(s1, s2), "A").start();
+        Thread.sleep(10);
+        new Thread(() -> semaphoreABC.printABC(s2, s3), "B").start();
+        Thread.sleep(10);
+        new Thread(() -> semaphoreABC.printABC(s3, s1), "C").start();
+    }
+}
+```
+
+## 两个线程交替打印1-100的奇偶数
+
+### synchronized + wait / notify
+
+```java
+class WaitNotifyOddEven {
+    private volatile int cnt = 0;
+    private static final Obejct LOCK = new Object();
+    
+    private void printOddEven() {
+        synchronized (LOCK) {
+            while(cnt < 100) { // 打印1-100
+                try{
+                    System.out.print( Thread.currentThread().getName() + "：");
+                    System.out.println(++count);
+                    LOCK.wait();
+                    LOCK.notifyAll();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 防止count=100后，while()循环不再执行，有子线程被阻塞未被唤醒，导致主线程不能退出
+            LOCK.notifyAll();
+        }
+    }
+    
+    public static void main(String[] args) {
+        WaitNotifyOddEven waitNotifyOddEven = new WaitNotifyOddEven();
+        new Thread(() -> waitNotifyOddEven.printOddEven(), "Odd").start();
+        Thread.sleep(10); //为了保证线程Odd先拿到锁
+        new Thread(() -> waitNotifyOddEven.printOddEven(), "Even").start();
+    }
+}
+```
+
+## N个线程循环打印1-100
+
+### synchronized + wait / notify
+
+```java
+class WaitNotify100 {
+    private volatile int cnt = 0;
+    private int maxNum = 100; // 打印1-100
+    private static final Obejct LOCK = new Object();
+    
+    private void print100(int order) {
+        while(true) {
+            synchronized (LOCK) {
+                while(cnt % 3 != order) {
+                    if(cnt >= maxNum) break;
+                    try {
+                        LOCK.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(cnt >= maxNum) break;
+                cnt++;
+                System.out.println(Thread.currentThread().getName() + ": " + cnt);
+                LOCK.notifyAll();
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        WaitNotify100 waitNotify100 = new WaitNotify100();
+        new Thread(() -> waitNotify100.print100(0), "thread1").start();
+        new Thread(() -> waitNotify100.print100(1), "thread2").start();
+        new Thread(() -> waitNotify100.print100(2), "thread3").start();
+    }
+}
+```

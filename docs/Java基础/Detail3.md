@@ -156,12 +156,13 @@
 
 - **并行**：同一时刻，多个任务同时执行。多核CPU可以实现并行。
 
-## 创建线程的两种方法
+## 创建线程的三种方法
 
 ![创建线程](pics/image-20210624102233934.png)
 
-- 继承`Thread`类，重写`run`方法
-- 实现`Runnable`接口，重写`run`方法
+1. 继承`Thread`类，重写`run`方法
+2. 实现`Runnable`接口，实现`run`方法
+3. 实现`Callable`接口，实现`call`方法（`call`方法有返回值），用`FutureTask`类包装`Callable`对象
 
 ## 线程应用案例：继承 Thread 类
 
@@ -171,25 +172,25 @@
 -  **`main`方法中调用`start()`方法启动线程**（从`main`线程启动一个子线程），**而不是直接调用`run`方法**（`run`方法只是普通方法，并没有真正地启动一个线程，`main`线程会把`run`方法执行完毕才向下执行）
 -  当`main`线程启动一个子线程，主线程不会阻塞，会继续执行
 
-## 调用 start() 方法的底层原理
-
-1. `main`主线程调用该类的`start()`方法启动线程
-
-   ```java
-   public synchronized void start() {
-       start0();
-   }
-   ```
-
-2. `start()`方法调用`start0()`方法，`start0()`是本地方法，由JVM调用，底层是`C/C++`实现；真正实现多线程效果的是`start0()`方法，而不是`run()`方法
-
-   ```java
-   private native void start0();
-   ```
-
-   **`start()`方法调用`start0()`方法后，该线程并不一定会立即执行，只是将线程变为可运行状态，具体的执行时刻由CPU统一调度**
-
-3. 启动线程后，最终执行该类的`run()`方法
+```java
+public class MultiThread extends Thread {
+    int i = 0;
+    public void run() {
+        for(;i < 100; i++) {
+            System.out.println(getName() + " " + i);
+        }
+    }
+    public static void main(String[] args) {
+        for(int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + i);
+            if(i == 20) {
+                new MultiThread().start();
+                new MultiThread().start();
+            }
+        }
+    }
+}
+```
 
 ## 线程应用案例：实现 Runnable 接口
 
@@ -210,6 +211,83 @@
   ```
 
   - 这里底层使用了**代理模式（静态代理）**的设计模式，作用：上述两种创建线程的方法都使用同一套代码
+
+```java
+public class MultiThread implements Runnable {
+    int i = 0;
+    public void run() {
+        for(;i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + i);
+        }
+    }
+    public static void main(String[] args) {
+        for(int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + i);
+            if(i == 20) {
+                new Thread(new MultiThread(), "thread-0").start();
+                new Thread(new MultiThread(), "thread-1").start();
+            }
+        }
+    }
+}
+```
+
+## 线程应用案例：实现 Callable 接口、Future
+
+1. 创建`Callable`接口的实现类，实现`call()`方法，该`call()`方法将作为线程执行体，**并有返回值**
+2. 创建`Callable`实现类的实例，**使用`FutureTask`类来包装`Callable`对象**，该`FutureTask`对象封装了该`Callable`对象的`call()`方法的返回值
+3. 使用`FutureTask`对象作为`Thread`对象的`target`创建并启动新线程
+4. **调用`FutureTask`对象的`get()`方法来会的子线程执行结束后的返回值**
+
+```java
+public class MultiThread implements Callable<Integer> {
+    @Override
+    public Integer call() throws Exception{
+        int i = 0;
+        for(;i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + i);
+        }
+        return i;
+    }
+    public static void main(String[] args) {
+        MultiThread multiThread = new MultiThread();
+        FutureTask futureMask = new FutureTask<>(multiThread);
+        for(int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + i);
+            if(i == 20) {
+                new Thread(futureMask, "有返回值的线程").start();
+            }
+        }
+        try {
+            System.out.println("子线程的返回值：" + futureMask.get());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+## 调用 start() 方法的底层原理
+
+1. `main`主线程调用该类的`start()`方法启动线程
+
+   ```java
+   public synchronized void start() {
+       start0();
+   }
+   ```
+
+2. `start()`方法调用`start0()`方法，`start0()`是本地方法，由JVM调用，底层是`C/C++`实现；真正实现多线程效果的是`start0()`方法，而不是`run()`方法
+
+   ```java
+   private native void start0();
+   ```
+
+   **`start()`方法调用`start0()`方法后，该线程并不一定会立即执行，只是将线程变为可运行状态，具体的执行时刻由CPU统一调度**
+
+3. 启动线程后，最终执行该类的`run()`方法
 
 ## 继承 Thread 和实现 Runnable 的区别
 

@@ -1,6 +1,5 @@
 - **Homepage**
   - [Introduction](Homepage/Intro)
-
 - **Java基础**
   - [Detail0](Java基础/Detail0.md)
   - [Detail1](Java基础/Detail1.md)
@@ -10,7 +9,6 @@
     - [ArrayList](Java基础/集合容器/ArrayList.md)
     - [HashMap](Java基础/集合容器/HashMap.md)
     - [ConcurrentHashMap](Java基础/集合容器/ConcurrentHashMap.md)
-  
 - **Java高级**
   - [Java高级学习路线](Java高级/Java高级学习路线.md)
   - 多线程高并发
@@ -25,7 +23,6 @@
     - [代理模式](Java高级/设计模式/代理模式.md)
     - [观察者模式](Java高级/设计模式/观察者模式.md)
     - [适配器模式](Java高级/设计模式/适配器模式.md)
-  
 - **JavaWeb**
   - [JavaWeb学习路线](JavaWeb/JavaWeb学习路线.md)
   - [数据库](JavaWeb/数据库.md)
@@ -39,7 +36,6 @@
   - [Filter & Listener](JavaWeb/Filter_Listener.md)
   - [JSP](JavaWeb/JSP.md)
   - [Redis](JavaWeb/Redis.md)
-
 - **SSM框架**
   - [Spring](SSM框架/Spring.md)
   - [Spring AOP](SSM框架/Spring_AOP.md)
@@ -57,7 +53,6 @@
     - [代码生成器](SSM框架/MyBatisPlus/代码生成器.md)
     - [MyBatisX插件](SSM框架/MyBatisPlus/MyBatisX.md)
   - [SSM整合](SSM框架/SSM整合.md)
-
 - **微服务**
   - [微服务框架](微服务/微服务框架.md)
   - SpringBoot
@@ -90,9 +85,7 @@
   - RabbitMQ
     - [服务异步通讯](微服务/RabbitMQ/服务异步通讯.md)
     - [RabbitMQ部署](微服务/RabbitMQ/RabbitMQ部署.md)
-
 - **分布式框架**
-  
 - **数据结构与算法**
   - 数据结构
     - [DataStructure](数据结构与算法/DataStructure.md)
@@ -116,7 +109,6 @@
     - [位运算](数据结构与算法/位运算.md)
     - [LRU算法](数据结构与算法/LRU算法.md)
     - [LFU算法](数据结构与算法/LFU算法.md)
-  
 - **计算机基础**
   - 操作系统
     - [操作系统基础](计算机基础/操作系统/操作系统基础.md)
@@ -129,22 +121,25 @@
     - [网络层](计算机基础/计算机网络/网络层.md) 
     - [运输层](计算机基础/计算机网络/运输层.md) 
     - [应用层](计算机基础/计算机网络/应用层.md)
-
 - **Project**
   - 高并发秒杀
     - [秒杀项目](项目/高并发秒杀/秒杀项目.md)
     - [秒杀项目问题总结](项目/高并发秒杀/秒杀项目问题总结.md)
     - [分布式Session](项目/高并发秒杀/分布式Session.md)
-
 - **Git**
   - [Git基础](Git/Git基础.md)
   - [Git远程仓库](Git/Git远程仓库.md)
-
 - **Code Practice**
   - [Input & Output in OJ](CodePractice/OJ_Input_Output.md)
-
+  - 数组
+    - [打印从1到最大的n位数](CodePractice/打印从1到最大的n位数.md)
+  - 树
+    - [二叉树的最近公共祖先](CodePractice/二叉树的最近公共祖先.md)
+    - [TopK问题](CodePractice/TopK问题.md) 
+  - IP地址相关
+    - [复原IP地址](CodePractice/复原IP地址.md)
+    - [IP到CIDR](CodePractice/IP到CIDR.md)
 - **云服务器**
   - [阿里云服务器搭建](云服务器/阿里云服务器搭建.md)
-
 - **Misc.**
   - [Banner](Misc/Banner.md)

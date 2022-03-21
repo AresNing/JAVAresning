@@ -176,10 +176,24 @@
 
 - `toString`：返回数组的字符串形式`Arrays.toString(arr)`
 
-- `sort`：排序（自然排序和定制排序），`sort`可重载，也可以通过传入一个`Comparator`接口实现定制排序
+- `sort`：排序（默认升序排序、定制排序），`sort`可重载，也可以通过传入一个`Comparator`接口实现定制排序
 
   - 调用定制排序时，传入两个参数：排序的数组；实现了`Comparator`接口的匿名内部类，要求实现`compare`方法
   - 底层调用`binarySort`二分法进行排序
+
+  ```java
+  // 自定义排序，降序排序
+  Integer[] nums = {1, 3, 4, 6, 2, 5, 7, 9, 8};
+  // 方法1：Comparator接口
+  Arrays.sort(nums, new Comparator<Integer>() {
+      @Override
+      public int compare(Integer a, Integer b) {
+          return b - a;
+      }
+  });
+  // 方法2：Lambda表达式
+  Arrays.sort(nums, (a, b) -> b - a);
+  ```
 
 - `binarySearch`：使用二叉查找 ，要求该数组是有序的。如果数组存在该元素，则返回索引；如果数组不存在该元素，则返回`-(arr.length+1)`
 
