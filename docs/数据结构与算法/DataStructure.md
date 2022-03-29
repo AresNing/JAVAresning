@@ -1,3 +1,17 @@
+# 常见数据结构的时间复杂度
+
+| Data Structure | Add        | Find       | Delete     | GetByIndex |
+| -------------- | ---------- | ---------- | ---------- | ---------- |
+| `Array`        | `O(n)`     | `O(n)`     | `O(n)`     | `O(1)`     |
+| `LinkedList`   | `O(1)`     | `O(n)`     | `O(n)`     | `O(n)`     |
+| `ArrayList`    | `O(1)`     | `O(n)`     | `O(n)`     | `O(1)`     |
+| `Stack`        | `O(1)`     |            | `O(1)`     |            |
+| `Queue`        | `O(1)`     |            | `O(1)`     |            |
+| `HashMap`      | `O(1)`     | `O(1)`     | `O(1)`     |            |
+| `TreeMap`      | `O(log n)` | `O(log n)` | `O(log n)` |            |
+| `HashSet`      | `O(1)`     | `O(1)`     | `O(1)`     |            |
+| `TreeSet`      | `O(log n)` | `O(log n)` | `O(log n)` |            |
+
 # 链表
 
 ## 单向链表
