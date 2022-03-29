@@ -12,6 +12,8 @@
 | `HashSet`      | `O(1)`     | `O(1)`     | `O(1)`     |            |
 | `TreeSet`      | `O(log n)` | `O(log n)` | `O(log n)` |            |
 
+![image-20220329154435475](pics/image-20220329154435475.png)
+
 # 链表
 
 ## 单向链表
