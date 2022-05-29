@@ -457,7 +457,7 @@ ribbon:
 startup.cmd -m standalone
 ```
 
-2. 浏览器访问http://127.0.0.1:8848/nacos，默认账号和密码都是`nacos`
+2. 浏览器访问http://127.0.0.1:8848/nacos （默认账号和密码都是`nacos`）
 
 ## 服务注册到 Nacos
 
