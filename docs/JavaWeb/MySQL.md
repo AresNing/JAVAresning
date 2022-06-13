@@ -150,6 +150,17 @@ from
 	class;
 ```
 
+
+
+# 其他常用函数
+
+## 日期函数
+
+- `year(date)`：返回`date`的年份
+- `month(date)`：返回`date`的月份
+- `day(date)`：返回`date`的日份
+- `date_formate(date, "%Y-%m-%d")`
+
 # 视图
 
 ## 基本概念

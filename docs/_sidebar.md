@@ -146,5 +146,7 @@
     - [myRpc-framework](项目/RPC框架/myRpc-framework.md)
 - **云服务器**
   - [阿里云服务器搭建](云服务器/阿里云服务器搭建.md)
+- **运维**
+- **测试**
 - **Misc.**
   - [Banner](Misc/Banner.md)
