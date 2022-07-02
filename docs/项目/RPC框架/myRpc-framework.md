@@ -216,7 +216,7 @@
     - Linked 系列，LinkedHashMap、LinkedHashSet 等 
     - Byte/Short 反序列化的时候变成 Integer
 
-- **protobuf**（Protocol Buffers：
+- **protobuf**（Protocol Buffers）：
 
   - Protostuff 和 Kryo 序列化的格式有相似之处，都是利用一个标记来记录字段类型，因此序列化出来体积都比较小
 
@@ -379,21 +379,21 @@
 
 Netty 的零拷贝主要包含三个方面
 
-1. Netty 接收和发送 ByteBuffer 采用 Direct Buffers，使用堆外直接内存进行 Socket 读写，不需要进行字节缓冲区的二次拷贝；如果使用传统的堆内存进行 Socket 读写，JVM 会将堆内存 Buffer 拷贝一份到直接内存中，然后才写入 Socket 中。相比于堆外直接内存，消息在发送过程中多了一次缓冲区的内存拷贝
-2. Netty 提供了组合 Buffer 对象，可以聚合多个 ByteBuffer 对象，用户可以像操作一个 Buffer 那样方便的对组合 Buffer 进行操作，避免了传统通过内存拷贝的方式将几个小 Buffer 合并成一个大的 Buffer
-3. Netty 的文件传输采用了 transferTo 方法，它可以直接将文件缓冲区的数据发送到目标 Channel，避免了传统通过循环 write 方式导致的内存拷贝问题
+1. Netty 接收和发送 ByteBuffer 采用 Direct Buffers，**使用堆外直接内存进行 Socket 读写，不需要进行字节缓冲区的二次拷贝**；如果使用传统的堆内存进行 Socket 读写，JVM 会将堆内存 Buffer 拷贝一份到直接内存中，然后才写入 Socket 中。相比于堆外直接内存，消息在发送过程中多了一次缓冲区的内存拷贝
+2. Netty 提供了**组合 Buffer 对象**，可以聚合多个 ByteBuffer 对象，用户可以像操作一个 Buffer 那样方便的对组合 Buffer 进行操作，避免了传统通过内存拷贝的方式将几个小 Buffer 合并成一个大的 Buffer
+3. Netty 的**文件传输采用了 transferTo 方法**，它可以直接将文件缓冲区的数据发送到目标 Channel，避免了传统通过循环 write 方式导致的内存拷贝问题
 
 ## Netty 中的重要组件
 
-- Channel ：Netty 网络操作抽象类，包括基本的 I/O 操作，如 bind、connect、read、write 等
-- EventLoop：主要是配合 Channel 处理 I/O 操作，用来处理连接的生命周期中所发生的事情
-- ChannelFuture ：Netty 框架中所有的 I/O 操作都为异步的，因此需要ChannelFuture 的 addListener() 注册一个 ChannelFutureListener 监听事件，当操作执行成功或者失败时，监听就会自动触发返回结果
-- ChannelHandler：充当了所有处理入站和出站数据的逻辑容器。ChannelHandler 主要用来处理各种事件，这里的事件很广泛，比如可以是连接、数据接收、异常、数据转换等
-- ChannelPipeline：为 ChannelHandler 链提供了容器，当 channel 创建时，就会被自动分配到它专属的 ChannelPipeline，这个关联是永久性的
+- **Channel** ：Netty 网络操作抽象类，包括基本的 I/O 操作，如 bind、connect、read、write 等
+- **EventLoop**：主要是配合 Channel 处理 I/O 操作，用来处理连接的生命周期中所发生的事情
+- **ChannelFuture** ：Netty 框架中所有的 I/O 操作都为异步的，因此需要ChannelFuture 的 addListener() 注册一个 ChannelFutureListener 监听事件，当操作执行成功或者失败时，监听就会自动触发返回结果
+- **ChannelHandler**：充当了所有处理入站和出站数据的逻辑容器。ChannelHandler 主要用来处理各种事件，这里的事件很广泛，比如可以是连接、数据接收、异常、数据转换等
+- **ChannelPipeline**：为 ChannelHandler 链提供了容器，当 channel 创建时，就会被自动分配到它专属的 ChannelPipeline，这个关联是永久性的
 
 ## Netty 的责任链
 
-- Netty 的 pipeline 设计，就采用了责任链设计模式，底层采用双向链表的数据结构，将链上的各个处理器串联起来
+- Netty 的 pipeline 设计，就采用了**责任链设计模式**，底层采用**双向链表**的数据结构，将链上的各个处理器串联起来
 - 客户端每一个请求的到来，Netty 都认为，pipeline 中的所有的处理器都有机会处理它，因此，请求全部从头节点开始往后传播，一直传播到尾节点（来到尾节点的 msg 会被释放掉）
 - 责任终止机制
   - 在 pipeline 中的任意一个节点，只要不手动的往下传播下去，这个事件就会终止传播在当前节点
@@ -408,10 +408,25 @@ Netty 的零拷贝主要包含三个方面
 
   - 考虑一种情况，某台服务器因为某些原因导致负载超高，CPU 100%，无法响应任何业务请求，但是使用 TCP 探针则仍旧能够确定连接状态，这就是典型的连接活着但业务提供方已死的状态
   - 对客户端而言，这时的最好选择就是断线后重新连接其他服务器，而不是一直认为当前服务器是可用状态一直向当前服务器发送些必然会失败的请求
-- Netty 提供了 `IdleStateHandler` 类专门用于处理心跳
+- **Netty 提供了 `IdleStateHandler` 类专门用于处理心跳**
   - 主要是通过向线程任务队列中添加定时任务，判断 channelRead() 方法或 write() 方法是否调用空闲超时，如果超时则触发超时事件执行自定义 userEventTrigger() 方法
-- `IdleStateHandler` 的构造函数如下：`public IdleStateHandler(long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit){...}`
+- `IdleStateHandler` 的**构造函数**如下：`public IdleStateHandler(long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit){...}`，**四个参数如下**
   1. `long readerIdleTime`：第一个参数是隔多久检查一下读事件是否发生，如果 `channelRead()` 方法超过 readerIdleTime 时间未被调用则会触发超时事件调用 `userEventTrigger()` 方法
   2. `long writerIdleTime`：第二个参数是隔多久检查一下写事件是否发生，writerIdleTime 写空闲超时时间设定，如果 `write()` 方法超过 writerIdleTime 时间未被调用则会触发超时事件调用 `userEventTrigger()` 方法
   3. `long allIdleTime`：第三个参数是全能型参数，隔多久检查读写事件
   4. `TimeUnit unit`：第四个参数表示当前的时间单位
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
