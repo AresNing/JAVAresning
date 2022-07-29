@@ -404,6 +404,64 @@ for(元素类型 元素名 : 集合名或数组名) {
   }
   ```
 
+## List 与 int[] 的互相转换
+
+> `int[] data = {1, 2, 3, 4, 5}`
+
+- `int[]` 转 `List<Integer>`
+
+```java
+List<Integer> list = Arrays.stream(data).boxed().collect(Collectors.toList());
+// Arrays.stream(arr) 可替换为 IntStream.of(arr)
+// 1. 使用 Arrays.stream 将 int[] 转换成 IntStream
+// 2. 使用 IntStream 中的 boxed() 装箱，将 IntStream 转换成 Stream<Integer>
+// 3. 使用 Stream 的 collect()，将 Stream<T> 转换成 List<T>
+```
+
+- `int[]` 转 `Integer[]`
+
+```java
+Integer[] integers = Arrays.stream(data).boxed().toArray(Integer::new);
+// Arrays.stream(arr) 可替换为 IntStream.of(arr)
+// 1. 使用 Arrays.stream 将 int[] 转换成 IntStream
+// 2. 使用 IntStream 中的 boxed() 装箱，将 IntStream 转换成 Stream<Integer>
+// 3. 使用 Stream 的 toArray，传入 IntFunction<A[]> generator
+```
+
+- `List<Integer>` 转 `Integer[]`
+
+```java
+Integer[] integers = list.toArray(new Integer[0]);
+// List<String> 转 String[] 同理
+```
+
+- `List<Integer>` 转 `int[]`
+
+```java
+int[] arr = list.stream().mapToInt(Integer::valueOf).toArray();
+// 想要转换成 int[] 类型，先要转成 IntStream
+// 1. 通过 mapToInt() 把 Stream<Integer> 调用 Integer::valueOf 来转换成 IntStream
+// 2. IntStream 中默认 toArray() 转成 int[]
+```
+
+- `Integer[]` 转成 `int[]`
+
+```java
+int[] arr = Arrays.stream(integers).mapToInt(Integer::valueOf).toArray();
+// 想要转换成 int[] 类型，先要转成 IntStream
+// 1. 通过 mapToInt() 把 Stream<Integer> 调用 Integer::valueOf 来转换成 IntStream
+// 2. IntStream 中默认 toArray() 转成 int[]
+```
+
+- `Integer[]` 转 `List<Integer>`
+
+```java
+List<Integer> list = Arrays.asList(integers);
+// String[] 转 List<String> 同理
+```
+
+
+
 #ArrayList 底层结构
 
 ## ArrayList 的注意事项
