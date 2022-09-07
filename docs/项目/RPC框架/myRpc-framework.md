@@ -5,6 +5,14 @@
   1. 服务端是服务提供者，对外暴露服务
   2. 客户端是服务消费者，调用远程服务
   3. Nacos 注册中心，负责服务注册和发现
+- 哪里用到多线程？
+
+  - 线程池，处理RpcRequest的工作线程
+- 向工作线程WorkerThread传入了socket和用于服务端实例service
+- 用到什么设计模式？
+  - 单例模式：Netty中处理RpcRequest的Handler，requestHandler 就是由自定义的单例工厂 SingletonFactory 生成的
+  - 懒汉式
+  - 双重校验
 
 
 
